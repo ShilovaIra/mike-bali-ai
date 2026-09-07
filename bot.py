@@ -1,20 +1,29 @@
 from __future__ import annotations
 
 import os
-from collections import defaultdict
 
 import requests
 from dotenv import load_dotenv
 from openai import OpenAI
-from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    Update,
+)
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-from buttons import build_reply_keyboard_rows
+from buttons import BUTTON_TO_TOPIC, build_reply_keyboard_rows
+from db.store import SessionStore
+from db.url import resolve_database_url
+from partners import PartnerType, build_partner_cards, resolve_logo_path
 
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+DATABASE_URL = resolve_database_url()
 
 MIKE_PROMPT = """
 Ты Майк — дружелюбный AI-гид по Бали и помощник Bali ProMax.
@@ -41,8 +50,9 @@ MIKE_PROMPT = """
 Если получаешь геолокацию, не выдумывай район сам. Используй только район и адрес, которые переданы в сообщении.
 """
 
-sessions: dict[str, list[dict]] = defaultdict(list)
+CHANNEL = "telegram"
 client = OpenAI(api_key=OPENAI_API_KEY)
+store: SessionStore | None = None
 
 
 def parse_admin_ids(raw: str | None) -> frozenset[str]:
@@ -55,10 +65,17 @@ def parse_admin_ids(raw: str | None) -> frozenset[str]:
 ADMIN_IDS = parse_admin_ids(os.getenv("ADMIN_CHAT_ID"))
 
 
-def reply_markup() -> ReplyKeyboardMarkup:
+def require_store() -> SessionStore:
+    if store is None:
+        raise RuntimeError("SessionStore is not initialized")
+    return store
+
+
+async def build_reply_markup() -> ReplyKeyboardMarkup:
+    partner_types = await require_store().list_partner_types()
     keyboard = [
         [KeyboardButton(label) for label in row]
-        for row in build_reply_keyboard_rows()
+        for row in build_reply_keyboard_rows(partner_types)
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=False)
 
@@ -101,13 +118,14 @@ def get_location_name(lat, lon):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    source = context.args[0] if context.args else "unknown"
     tid = telegram_id(update)
-    sessions[tid] = []
+    await require_store().start_conversation(CHANNEL, tid, source=source)
 
     await update.message.reply_text(
         "Привет! Я Майк - AI-гид по Бали.\n\n"
         "Могу помочь с покупкой eSIM, обменом валюты, оформлением визы, арендой транспорта, поиском бьюти-услуг и интересных экскурсий, а также с арендой и покупкой недвижимости. Просто отправь вопрос в чат или воспользуйся кнопками из моего меню ⬇️",
-        reply_markup=reply_markup(),
+        reply_markup=await build_reply_markup(),
     )
 
 
@@ -116,10 +134,10 @@ async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    sessions[telegram_id(update)] = []
+    await require_store().reset_conversation(CHANNEL, telegram_id(update))
     await update.message.reply_text(
         "Память диалога очищена. Начинаем заново 👌",
-        reply_markup=reply_markup(),
+        reply_markup=await build_reply_markup(),
     )
 
 
@@ -128,8 +146,8 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not location:
         await update.message.reply_text(
-            "Не получил геопозицию. Нажми «Что рядом» и разреши отправку локации.",
-            reply_markup=reply_markup(),
+            "Не получил геопозицию. Отправь локацию ещё раз.",
+            reply_markup=await build_reply_markup(),
         )
         return
 
@@ -155,21 +173,87 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Используй только определённый район и адрес.
 Дай короткий ответ: где человек находится, что рядом посмотреть, где поесть и куда съездить.
 """
-    await ask_openai(update, context, user_text)
+    metadata = {
+        "message_type": "location",
+        "lat": lat,
+        "lon": lon,
+        "area": area,
+        "full_address": full_address,
+    }
+    await ask_openai(update, context, user_text, metadata=metadata)
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await ask_openai(update, context, update.message.text)
+    user_text = update.message.text
+    session = require_store()
+    partner_types = await session.list_partner_types()
+    partner_by_label = {t.button_label: t for t in partner_types}
+    tid = telegram_id(update)
+
+    topic = BUTTON_TO_TOPIC.get(user_text)
+    partner_type = partner_by_label.get(user_text)
+    if partner_type is not None:
+        topic = partner_type.slug
+    if topic:
+        await session.record_topic_event(CHANNEL, tid, topic=topic)
+    if partner_type is not None:
+        await handle_partner_topic(update, partner_type)
+        return
+    await ask_openai(update, context, user_text)
+
+
+async def handle_partner_topic(update: Update, partner_type: PartnerType):
+    session = require_store()
+    partners = await session.list_active_partners(partner_type.slug)
+    intro_or_fallback, cards = build_partner_cards(partners, partner_type)
+
+    await update.message.reply_text(
+        intro_or_fallback,
+        reply_markup=await build_reply_markup(),
+    )
+    if not cards:
+        return
+
+    for card in cards:
+        keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton(card.button_text, url=card.referral_url)]]
+        )
+        logo = resolve_logo_path(card.logo_path)
+        if logo is not None:
+            with logo.open("rb") as photo:
+                await update.message.reply_photo(
+                    photo=photo,
+                    caption=card.caption_html,
+                    parse_mode="HTML",
+                    reply_markup=keyboard,
+                )
+        else:
+            await update.message.reply_text(
+                card.caption_html,
+                parse_mode="HTML",
+                reply_markup=keyboard,
+                disable_web_page_preview=True,
+            )
 
 
 async def ask_openai(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
     user_text: str,
+    *,
+    metadata: dict | None = None,
 ):
     tid = telegram_id(update)
-    history = sessions[tid]
-    history.append({"role": "user", "content": user_text})
+    session = require_store()
+    await session.append_message(
+        CHANNEL,
+        tid,
+        role="user",
+        content=user_text,
+        metadata=metadata,
+    )
+
+    history = await session.get_ai_context(CHANNEL, tid)
 
     await update.message.reply_text("Думаю как местный 😎")
 
@@ -182,32 +266,59 @@ async def ask_openai(
 
         lead_ready = "ЗАЯВКА_ГОТОВА" in answer
         answer = answer.replace("ЗАЯВКА_ГОТОВА", "").strip()
-        history.append({"role": "assistant", "content": answer})
+        await session.append_message(CHANNEL, tid, role="assistant", content=answer)
 
         if lead_ready:
-            await send_lead_to_admin(update, context)
+            lead = await session.create_lead(
+                CHANNEL,
+                tid,
+                snapshot=await build_lead_snapshot(update),
+            )
+            if lead and lead.created:
+                await send_lead_to_admin(update, context, lead.source)
 
     except Exception as e:
         answer = f"Ошибка OpenAI:\n{e}"
 
-    await update.message.reply_text(answer, reply_markup=reply_markup())
+    await update.message.reply_text(answer, reply_markup=await build_reply_markup())
 
 
-async def send_lead_to_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def build_lead_snapshot(update: Update) -> dict:
+    tid = telegram_id(update)
+    user = update.effective_user
+    history = await require_store().get_ai_context(CHANNEL, tid, limit=16)
+    username = f"@{user.username}" if user.username else None
+
+    return {
+        "telegram_id": tid,
+        "telegram_username": username,
+        "telegram_first_name": user.first_name,
+        "dialogue": history,
+    }
+
+
+async def send_lead_to_admin(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    source: str,
+):
     if not ADMIN_IDS:
         return
 
     user = update.effective_user
     tid = telegram_id(update)
-    username = f"@{user.username}" if user.username else "не указан"
+    history = await require_store().get_ai_context(CHANNEL, tid, limit=16)
 
     dialogue = ""
-    for message in sessions[tid]:
+    for message in history:
         role = "Клиент" if message["role"] == "user" else "Майк"
         dialogue += f"{role}: {message['content']}\n\n"
 
+    username = f"@{user.username}" if user.username else "не указан"
+
     lead_text = (
         "🏠 Новая заявка на недвижимость\n\n"
+        f"Источник: {source}\n\n"
         f"Имя в Telegram: {user.first_name or 'не указано'}\n"
         f"Username: {username}\n"
         f"Telegram ID: {tid}\n\n"
@@ -219,6 +330,18 @@ async def send_lead_to_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await context.bot.send_message(chat_id=admin_id, text=lead_text)
 
 
+async def post_init(application: Application) -> None:
+    global store
+    store = await SessionStore.create(DATABASE_URL)
+
+
+async def post_shutdown(application: Application) -> None:
+    global store
+    if store is not None:
+        await store.close()
+        store = None
+
+
 def main():
     if not TELEGRAM_BOT_TOKEN:
         print("Ошибка: не найден TELEGRAM_BOT_TOKEN в файле .env")
@@ -228,7 +351,17 @@ def main():
         print("Ошибка: не найден OPENAI_API_KEY в файле .env")
         return
 
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    if not DATABASE_URL:
+        print("Ошибка: не найден DATABASE_URL в файле .env")
+        return
+
+    app = (
+        Application.builder()
+        .token(TELEGRAM_BOT_TOKEN)
+        .post_init(post_init)
+        .post_shutdown(post_shutdown)
+        .build()
+    )
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("myid", myid))

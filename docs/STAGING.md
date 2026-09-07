@@ -23,7 +23,16 @@ cp /opt/mike-bali-ai/.env.example /opt/mike-bali-ai/.env
 nano /opt/mike-bali-ai/.env
 ```
 
-The workflow preserves `.env` across deploys. The first run fails until that file exists with real secrets.
+The workflow preserves `.env` across deploys. The first run fails until that file exists with real secrets, including `POSTGRES_PASSWORD`.
+
+Compose starts a dedicated Postgres (`POSTGRES_DB=mike_bali`, unpublished port, volume `postgres_data`). Do not point `DATABASE_URL` at the Phuket database.
+
+Schema is applied automatically when the bot starts. After the first boot you can create a staff login (admin UI comes later):
+
+```bash
+docker compose run --rm bot python scripts/create_admin_user.py \
+  --email you@example.com --password 'choose-a-strong-password'
+```
 
 ## GitHub Actions secrets
 

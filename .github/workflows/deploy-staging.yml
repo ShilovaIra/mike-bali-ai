@@ -31,7 +31,7 @@ jobs:
 
       - name: Build image on the runner
         run: |
-          printf 'TELEGRAM_BOT_TOKEN=unused\nOPENAI_API_KEY=unused\nADMIN_CHAT_ID=\n' > .env
+          printf 'TELEGRAM_BOT_TOKEN=unused\nOPENAI_API_KEY=unused\nADMIN_CHAT_ID=\nPOSTGRES_PASSWORD=unused\nPOSTGRES_DB=mike_bali\n' > .env
           docker compose build bot
           docker save mike-bali-app:local | gzip -1 > "$RUNNER_TEMP/mike-bali-images.tgz"
           cp "$RUNNER_TEMP/mike-bali-images.tgz" mike-bali-images.tgz

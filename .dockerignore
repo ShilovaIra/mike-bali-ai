@@ -8,6 +8,5 @@ __pycache__
 .git
 .github
 .gitignore
-scripts
 docs
 *.md
