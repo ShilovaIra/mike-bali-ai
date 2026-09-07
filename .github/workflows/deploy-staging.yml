@@ -1,0 +1,97 @@
+name: Deploy staging
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy bot to staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging
+        uses: actions/checkout@v4
+
+      - name: Pack application tree
+        run: |
+          tar czf "$RUNNER_TEMP/mike-bali-ai.tgz" \
+            --exclude .git \
+            --exclude .github \
+            --exclude .env \
+            --exclude .venv \
+            --exclude '*.tgz' \
+            .
+          cp "$RUNNER_TEMP/mike-bali-ai.tgz" mike-bali-ai.tgz
+
+      - name: Build image on the runner
+        run: |
+          printf 'TELEGRAM_BOT_TOKEN=unused\nOPENAI_API_KEY=unused\nADMIN_CHAT_ID=\nPOSTGRES_PASSWORD=unused\nPOSTGRES_DB=mike_bali\n' > .env
+          docker compose build bot
+          docker save mike-bali-app:local | gzip -1 > "$RUNNER_TEMP/mike-bali-images.tgz"
+          cp "$RUNNER_TEMP/mike-bali-images.tgz" mike-bali-images.tgz
+
+      - name: Prepare upload directory on Droplet
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            mkdir -p /opt/mike-bali-incoming /opt/mike-bali-ai
+            rm -f /opt/mike-bali-incoming/*.tgz
+
+      - name: Copy pack to Droplet
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT || 22 }}
+          source: mike-bali-ai.tgz,mike-bali-images.tgz
+          target: /opt/mike-bali-incoming
+          overwrite: true
+          command_timeout: 15m
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT || 22 }}
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+            ls -lh /opt/mike-bali-incoming
+            if [[ -f /opt/mike-bali-ai/.env ]]; then
+              cp -a /opt/mike-bali-ai/.env /tmp/mike-bali.env.bak
+            fi
+            tar xzf /opt/mike-bali-incoming/mike-bali-ai.tgz -C /opt/mike-bali-ai
+            if [[ -f /tmp/mike-bali.env.bak ]]; then
+              cp -a /tmp/mike-bali.env.bak /opt/mike-bali-ai/.env
+            fi
+            gunzip -c /opt/mike-bali-incoming/mike-bali-images.tgz | docker load
+            chmod +x /opt/mike-bali-ai/scripts/deploy_staging.sh
+            SKIP_GIT_PULL=1 SKIP_IMAGE_BUILD=1 /opt/mike-bali-ai/scripts/deploy_staging.sh
+
+      - name: Verify bot is running
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            cd /opt/mike-bali-ai
+            docker compose ps
+            docker compose logs --tail=40 bot
+            docker compose ps --status running --format '{{.Service}}' | grep -qx bot
