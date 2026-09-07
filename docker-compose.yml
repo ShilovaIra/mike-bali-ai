@@ -1,0 +1,9 @@
+name: mike-bali-ai
+
+services:
+  bot:
+    build: .
+    image: mike-bali-app:local
+    pull_policy: never
+    restart: unless-stopped
+    env_file: .env
