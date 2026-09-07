@@ -174,6 +174,57 @@ CREATE INDEX IF NOT EXISTS partners_type_active_sort
     ON partners (type, sort_order)
     WHERE is_active;
 
+INSERT INTO partners (id, name, type, referral_url, blurb, logo_path, is_active, sort_order)
+VALUES
+(
+    '00000000-0000-4000-8000-000000000001',
+    'Mike eSIM',
+    'esim',
+    'https://t.me/Mike_Bali_eSIM_bot',
+    '',
+    'media/partners/esim-logo.jpeg',
+    true,
+    1
+),
+(
+    '00000000-0000-4000-8000-000000000002',
+    'Ex24.pro',
+    'money_exchange',
+    'https://ex24qr.com/wtakeox',
+    'Лицензированный обмен валюты. Бали, Вьетнам, ОАЭ, Китай, Таиланд. Переводы по всему миру.',
+    'media/partners/ex24pro_logo.jpeg',
+    true,
+    1
+),
+(
+    '00000000-0000-4000-8000-000000000003',
+    'My Bali Trips',
+    'excursions',
+    'https://mybalitrips.com/?utm_pid=1439',
+    'С 2013 года — живые гиды по Бали и Индонезии, не бот. Более 60 000 гостей и проверенные туры.',
+    'media/partners/excursion_logo.jpeg',
+    true,
+    1
+),
+(
+    '00000000-0000-4000-8000-000000000004',
+    'Butler Support',
+    'visa_service',
+    'https://t.me/ButlerSupportBot?start=start-ref_baliguide',
+    'Откроем и продлим визу, поможем с визами в другие страны, компанией и KITAS. Апостиль, вилла, IMEI, карта и консьерж.',
+    'media/partners/visa_service_logo.jpeg',
+    true,
+    1
+)
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    type = EXCLUDED.type,
+    referral_url = EXCLUDED.referral_url,
+    blurb = EXCLUDED.blurb,
+    logo_path = EXCLUDED.logo_path,
+    is_active = EXCLUDED.is_active,
+    sort_order = EXCLUDED.sort_order;
+
 CREATE TABLE IF NOT EXISTS leads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     conversation_id UUID NOT NULL REFERENCES conversations (id) ON DELETE CASCADE,

@@ -1,4 +1,10 @@
+from db.migrate import apply_schema
 from tests.conftest import requires_db
+
+
+async def _reapply_schema(store):
+    async with store.pool.acquire() as conn:
+        await apply_schema(conn)
 
 
 @requires_db
@@ -89,10 +95,77 @@ async def test_schema_seeds_bali_partner_types_in_sort_order(store):
 
 
 @requires_db
-async def test_list_active_partners_is_empty_before_partners_are_seeded(store):
+async def test_schema_leaves_beauty_and_vehicle_partners_empty(store):
+    await _reapply_schema(store)
+
+    beauty = await store.list_active_partners("beauty_service")
+    vehicles = await store.list_active_partners("vehicle_rent")
+
+    assert beauty == []
+    assert vehicles == []
+
+
+@requires_db
+async def test_schema_seeds_esim_partner(store):
+    await _reapply_schema(store)
+
+    partners = await store.list_active_partners("esim")
+
+    assert [p.name for p in partners] == ["Mike eSIM"]
+    partner = partners[0]
+    assert partner.referral_url == "https://t.me/Mike_Bali_eSIM_bot"
+    assert partner.blurb in (None, "")
+    assert partner.logo_path == "media/partners/esim-logo.jpeg"
+
+
+@requires_db
+async def test_schema_seeds_money_exchange_partner(store):
+    await _reapply_schema(store)
+
     partners = await store.list_active_partners("money_exchange")
 
-    assert partners == []
+    assert [p.name for p in partners] == ["Ex24.pro"]
+    partner = partners[0]
+    assert partner.referral_url == "https://ex24qr.com/wtakeox"
+    assert partner.blurb == (
+        "Лицензированный обмен валюты. Бали, Вьетнам, ОАЭ, Китай, Таиланд. "
+        "Переводы по всему миру."
+    )
+    assert partner.logo_path == "media/partners/ex24pro_logo.jpeg"
+
+
+@requires_db
+async def test_schema_seeds_excursions_partner(store):
+    await _reapply_schema(store)
+
+    partners = await store.list_active_partners("excursions")
+
+    assert [p.name for p in partners] == ["My Bali Trips"]
+    partner = partners[0]
+    assert partner.referral_url == "https://mybalitrips.com/?utm_pid=1439"
+    assert partner.blurb == (
+        "С 2013 года — живые гиды по Бали и Индонезии, не бот. "
+        "Более 60 000 гостей и проверенные туры."
+    )
+    assert partner.logo_path == "media/partners/excursion_logo.jpeg"
+
+
+@requires_db
+async def test_schema_seeds_visa_service_partner(store):
+    await _reapply_schema(store)
+
+    partners = await store.list_active_partners("visa_service")
+
+    assert [p.name for p in partners] == ["Butler Support"]
+    partner = partners[0]
+    assert partner.referral_url == (
+        "https://t.me/ButlerSupportBot?start=start-ref_baliguide"
+    )
+    assert partner.blurb == (
+        "Откроем и продлим визу, поможем с визами в другие страны, компанией и KITAS. "
+        "Апостиль, вилла, IMEI, карта и консьерж."
+    )
+    assert partner.logo_path == "media/partners/visa_service_logo.jpeg"
 
 
 @requires_db
