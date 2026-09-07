@@ -13,6 +13,7 @@ VISA_BUTTON = "🪪 \nПомощь с Визой"
 BEAUTY_BUTTON = "💇‍♀️ \nБьюти услуги"
 RENT_BUTTON = "🏡 \nАренда недвижимости"
 BUY_BUTTON = "🏡 \nПокупка недвижимости"
+ASK_MIKE_BUTTON = "💬 \nСпросить Майка"
 
 MENU_BUTTONS = (
     ESIM_BUTTON,
@@ -32,9 +33,12 @@ BUTTON_TO_TOPIC = {
     BEAUTY_BUTTON: "beauty",
     RENT_BUTTON: "rent",
     BUY_BUTTON: "buy",
+    ASK_MIKE_BUTTON: "ask_mike",
 }
 
 
 def build_reply_keyboard_rows() -> list[list[str]]:
-    """Pack the main menu two buttons per row."""
-    return [list(MENU_BUTTONS[i : i + 2]) for i in range(0, len(MENU_BUTTONS), 2)]
+    """Pack the main menu two buttons per row; Ask Mike always alone last."""
+    rows = [list(MENU_BUTTONS[i : i + 2]) for i in range(0, len(MENU_BUTTONS), 2)]
+    rows.append([ASK_MIKE_BUTTON])
+    return rows
