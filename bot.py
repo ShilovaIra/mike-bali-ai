@@ -9,16 +9,12 @@ from openai import OpenAI
 from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
+from buttons import build_reply_keyboard_rows
+
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-WHERE_TO_EAT_BUTTON = "🍜 \nГде поесть"
-BEACHES_BUTTON = "🏖 \nПляжи"
-NEARBY_BUTTON = "📍 \nЧто рядом"
-REAL_ESTATE_BUTTON = "🏠 \nНедвижимость"
-ASK_MIKE_BUTTON = "💬 \nСпросить Майка"
 
 MIKE_PROMPT = """
 Ты Майк — дружелюбный AI-гид по Бали и помощник Bali ProMax.
@@ -61,15 +57,8 @@ ADMIN_IDS = parse_admin_ids(os.getenv("ADMIN_CHAT_ID"))
 
 def reply_markup() -> ReplyKeyboardMarkup:
     keyboard = [
-        [
-            KeyboardButton(WHERE_TO_EAT_BUTTON),
-            KeyboardButton(BEACHES_BUTTON),
-        ],
-        [
-            KeyboardButton(NEARBY_BUTTON, request_location=True),
-            KeyboardButton(REAL_ESTATE_BUTTON),
-        ],
-        [KeyboardButton(ASK_MIKE_BUTTON)],
+        [KeyboardButton(label) for label in row]
+        for row in build_reply_keyboard_rows()
     ]
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=False)
 
