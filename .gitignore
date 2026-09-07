@@ -3,5 +3,3 @@ __pycache__/
 *.py[cod]
 .env
 .pytest_cache/
-staging-mike-bali-ai
-staging-mike-bali-ai.pub
