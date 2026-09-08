@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
@@ -25,6 +26,25 @@ class LeadRecord:
     conversation_id: UUID
     source: str
     created: bool
+
+
+@dataclass(frozen=True)
+class TopicCount:
+    unique_users: int
+    taps: int
+
+
+@dataclass(frozen=True)
+class BotStats:
+    total_users: int
+    new_users_today: int
+    active_today: int
+    new_users_7d: int
+    topics_all_time: dict[str, TopicCount]
+    topics_7d: dict[str, TopicCount]
+    leads_all_time: int
+    leads_7d: int
+    users_by_first_source: dict[str, int]
 
 
 @dataclass(frozen=True)
@@ -245,6 +265,142 @@ class SessionStore:
                 ctx.conversation_id,
             )
             return exists is not None
+
+    async def record_inbound(
+        self,
+        channel: str,
+        external_id: str,
+        *,
+        at: datetime | None = None,
+    ) -> None:
+        inbound_at = at or datetime.now(timezone.utc)
+        async with self._pool.acquire() as conn:
+            user_id, _ = await self._ensure_user(
+                conn, channel, external_id, "unknown"
+            )
+            await conn.execute(
+                """
+                UPDATE users
+                SET last_inbound_at = $2
+                WHERE id = $1
+                """,
+                user_id,
+                inbound_at,
+            )
+
+    async def get_bot_stats(self, *, timezone: str = "Asia/Makassar") -> BotStats:
+        async with self._pool.acquire() as conn:
+            topics_all_time = await self._fetch_topic_counts(conn)
+            topics_7d = await self._fetch_topic_counts(
+                conn,
+                since_interval="7 days",
+            )
+            total_users = await conn.fetchval("SELECT count(*) FROM users")
+            active_today = await conn.fetchval(
+                """
+                SELECT count(*) FROM (
+                    SELECT c.user_id AS user_id
+                    FROM messages m
+                    JOIN conversations c ON c.id = m.conversation_id
+                    WHERE m.role = 'user'
+                      AND (m.created_at AT TIME ZONE $1)::date
+                          = (now() AT TIME ZONE $1)::date
+                    UNION
+                    SELECT id
+                    FROM users
+                    WHERE last_inbound_at IS NOT NULL
+                      AND (last_inbound_at AT TIME ZONE $1)::date
+                          = (now() AT TIME ZONE $1)::date
+                    UNION
+                    SELECT user_id
+                    FROM topic_events
+                    WHERE (created_at AT TIME ZONE $1)::date
+                          = (now() AT TIME ZONE $1)::date
+                ) active
+                """,
+                timezone,
+            )
+            new_users_today = await conn.fetchval(
+                """
+                SELECT count(*)
+                FROM users
+                WHERE (created_at AT TIME ZONE $1)::date
+                      = (now() AT TIME ZONE $1)::date
+                """,
+                timezone,
+            )
+            new_users_7d = await conn.fetchval(
+                """
+                SELECT count(*)
+                FROM users
+                WHERE created_at >= now() - interval '7 days'
+                """
+            )
+            leads_all_time = await conn.fetchval("SELECT count(*) FROM leads")
+            leads_7d = await conn.fetchval(
+                """
+                SELECT count(*)
+                FROM leads
+                WHERE created_at >= now() - interval '7 days'
+                """
+            )
+            source_rows = await conn.fetch(
+                """
+                SELECT first_source, count(*)::int AS count
+                FROM users
+                GROUP BY first_source
+                ORDER BY count DESC, first_source ASC
+                """
+            )
+        return BotStats(
+            total_users=int(total_users or 0),
+            new_users_today=int(new_users_today or 0),
+            active_today=int(active_today or 0),
+            new_users_7d=int(new_users_7d or 0),
+            topics_all_time=topics_all_time,
+            topics_7d=topics_7d,
+            leads_all_time=int(leads_all_time or 0),
+            leads_7d=int(leads_7d or 0),
+            users_by_first_source={
+                row["first_source"]: int(row["count"]) for row in source_rows
+            },
+        )
+
+    async def _fetch_topic_counts(
+        self,
+        conn: asyncpg.Connection,
+        *,
+        since_interval: str | None = None,
+    ) -> dict[str, TopicCount]:
+        if since_interval:
+            rows = await conn.fetch(
+                """
+                SELECT topic,
+                       count(*)::int AS taps,
+                       count(DISTINCT user_id)::int AS unique_users
+                FROM topic_events
+                WHERE created_at >= now() - ($1::text)::interval
+                GROUP BY topic
+                """,
+                since_interval,
+            )
+        else:
+            rows = await conn.fetch(
+                """
+                SELECT topic,
+                       count(*)::int AS taps,
+                       count(DISTINCT user_id)::int AS unique_users
+                FROM topic_events
+                GROUP BY topic
+                """
+            )
+        return {
+            row["topic"]: TopicCount(
+                unique_users=row["unique_users"],
+                taps=row["taps"],
+            )
+            for row in rows
+        }
 
     async def record_topic_event(
         self,

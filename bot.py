@@ -14,10 +14,12 @@ from telegram import (
 )
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
+from admin_ids import parse_admin_ids, sender_is_admin
 from buttons import BUTTON_TO_TOPIC, build_reply_keyboard_rows
 from db.store import SessionStore
 from db.url import resolve_database_url
 from partners import PartnerType, build_partner_cards, resolve_logo_path
+from stats_report import format_bot_stats
 
 load_dotenv()
 
@@ -53,14 +55,6 @@ MIKE_PROMPT = """
 CHANNEL = "telegram"
 client = OpenAI(api_key=OPENAI_API_KEY)
 store: SessionStore | None = None
-
-
-def parse_admin_ids(raw: str | None) -> frozenset[str]:
-    """Comma-separated Telegram user/chat ids, e.g. '111,222'."""
-    if not raw:
-        return frozenset()
-    return frozenset(part.strip() for part in raw.split(",") if part.strip())
-
 
 ADMIN_IDS = parse_admin_ids(os.getenv("ADMIN_CHAT_ID"))
 
@@ -121,6 +115,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     source = context.args[0] if context.args else "unknown"
     tid = telegram_id(update)
     await require_store().start_conversation(CHANNEL, tid, source=source)
+    await require_store().record_inbound(CHANNEL, tid)
 
     await update.message.reply_text(
         "Привет! Я Майк - AI-гид по Бали.\n\n"
@@ -133,8 +128,32 @@ async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Chat ID:\n{update.effective_chat.id}")
 
 
+def is_admin(update: Update) -> bool:
+    user = update.effective_user
+    chat = update.effective_chat
+    return sender_is_admin(
+        user_id=str(user.id) if user else "",
+        chat_id=str(chat.id) if chat else "",
+        admin_ids=ADMIN_IDS,
+    )
+
+
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin(update):
+        return
+
+    session = require_store()
+    bot_stats = await session.get_bot_stats()
+    partner_types = await session.list_partner_types()
+    await update.message.reply_text(
+        format_bot_stats(bot_stats, partner_types=partner_types)
+    )
+
+
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await require_store().reset_conversation(CHANNEL, telegram_id(update))
+    tid = telegram_id(update)
+    await require_store().reset_conversation(CHANNEL, tid)
+    await require_store().record_inbound(CHANNEL, tid)
     await update.message.reply_text(
         "Память диалога очищена. Начинаем заново 👌",
         reply_markup=await build_reply_markup(),
@@ -150,6 +169,9 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=await build_reply_markup(),
         )
         return
+
+    tid = telegram_id(update)
+    await require_store().record_inbound(CHANNEL, tid)
 
     lat = location.latitude
     lon = location.longitude
@@ -194,6 +216,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     partner_type = partner_by_label.get(user_text)
     if partner_type is not None:
         topic = partner_type.slug
+    await session.record_inbound(CHANNEL, tid)
     if topic:
         await session.record_topic_event(CHANNEL, tid, topic=topic)
     if partner_type is not None:
@@ -365,6 +388,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("myid", myid))
+    app.add_handler(CommandHandler("stats", stats))
     app.add_handler(MessageHandler(filters.LOCATION, handle_location))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
