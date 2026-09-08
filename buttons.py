@@ -9,15 +9,16 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from partners import PartnerType
+from topics import TOPIC_ASK_MIKE, TOPIC_BUY, TOPIC_RENT
 
 RENT_BUTTON = "🏡 \nАренда недвижимости"
 BUY_BUTTON = "🏡 \nПокупка недвижимости"
 ASK_MIKE_BUTTON = "💬 \nСпросить Майка"
 
 BUTTON_TO_TOPIC = {
-    RENT_BUTTON: "rent",
-    BUY_BUTTON: "buy",
-    ASK_MIKE_BUTTON: "ask_mike",
+    RENT_BUTTON: TOPIC_RENT,
+    BUY_BUTTON: TOPIC_BUY,
+    ASK_MIKE_BUTTON: TOPIC_ASK_MIKE,
 }
 
 
