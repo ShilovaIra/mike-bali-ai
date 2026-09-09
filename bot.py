@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import json
 import os
 
 import requests
@@ -18,13 +20,16 @@ from admin_ids import parse_admin_ids, sender_is_admin
 from buttons import BUTTON_TO_TOPIC, build_reply_keyboard_rows
 from db.store import SessionStore
 from db.url import resolve_database_url
+from maps_links import sanitize_map_links
 from partners import PartnerType, build_partner_cards, resolve_logo_path
+from places import PlacesClient
 from stats_report import format_bot_stats
 
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_PLACES_API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 DATABASE_URL = resolve_database_url()
 
 MIKE_PROMPT = """
@@ -50,11 +55,83 @@ MIKE_PROMPT = """
 ЗАЯВКА_ГОТОВА
 
 Если получаешь геолокацию, не выдумывай район сам. Используй только район и адрес, которые переданы в сообщении.
+
+Никогда не выдумывай ссылки и никогда не давай сокращённые ссылки
+(goo.gl, maps.app.goo.gl, g.page, bit.ly и любые другие короткие адреса).
+Ты не можешь знать их и не можешь проверить — такие ссылки не открываются.
+
+Если человек просит ссылку на место в Google Картах, собирай её по шаблону:
+https://www.google.com/maps/search/?api=1&query=НАЗВАНИЕ+МЕСТА+Bali
+
+Название пиши латиницей, пробелы заменяй на +.
+Пример: https://www.google.com/maps/search/?api=1&query=Betelnut+Cafe+Canggu+Bali
+
+Ссылки присылай обычным текстом, без markdown — квадратные скобки не работают.
+"""
+
+# Appended only when place search is configured, otherwise Mike would promise
+# a lookup he cannot make.
+PLACE_SEARCH_PROMPT = """
+У тебя есть поиск реальных мест на Бали в Google Картах.
+
+Не называй конкретное заведение по памяти. Когда нужен конкретный ресторан,
+кафе, бар, пляж или магазин — сначала найди его поиском и говори только о том,
+что вернул поиск.
+
+Ссылку давай ровно ту, что пришла в поле maps_url, символ в символ.
+Не сокращай её и не собирай свою.
+
+Если поиск ничего не нашёл, честно скажи, что не нашёл такого места, и предложи
+поискать по-другому. Не придумывай замену.
+
+Никогда не упоминай названия инструментов и не спрашивай разрешения на поиск —
+просто ищи и отвечай.
 """
 
 CHANNEL = "telegram"
 client = OpenAI(api_key=OPENAI_API_KEY)
 store: SessionStore | None = None
+places: PlacesClient | None = None
+
+FIND_PLACES_TOOL = {
+    "type": "function",
+    "name": "find_places",
+    "description": (
+        "Search real places on Bali (restaurants, cafes, beaches, bars, shops) "
+        "in Google Maps. Call this before naming a specific place or giving any "
+        "map link. Returns real names, addresses and working map links."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": (
+                    "What to look for, in English, with the area if known, "
+                    "e.g. 'indonesian restaurant Canggu' or 'Seniman Coffee Studio Ubud'."
+                ),
+            },
+            "open_now": {
+                "type": "boolean",
+                "description": (
+                    "Keep only places open right now. Set true ONLY if the user "
+                    "explicitly asked for somewhere open now; it hides good "
+                    "places that happen to be closed."
+                ),
+            },
+        },
+        "required": ["query"],
+        "additionalProperties": False,
+    },
+}
+MAX_TOOL_ROUNDS = 3
+
+
+def system_prompt() -> str:
+    if places is None:
+        return MIKE_PROMPT
+    return MIKE_PROMPT + PLACE_SEARCH_PROMPT
+
 
 ADMIN_IDS = parse_admin_ids(os.getenv("ADMIN_CHAT_ID"))
 
@@ -259,6 +336,65 @@ async def handle_partner_topic(update: Update, partner_type: PartnerType):
             )
 
 
+async def find_places(arguments: dict) -> dict:
+    """Body of the find_places tool. Never raises: the reply must still go out."""
+    if places is None:
+        return {"places": [], "error": "place search unavailable"}
+
+    results = await places.search(
+        str(arguments.get("query") or ""),
+        open_now=bool(arguments.get("open_now")),
+    )
+    return {"places": [place.for_model() for place in results]}
+
+
+TOOL_IMPLEMENTATIONS = {"find_places": find_places}
+
+
+async def run_model(messages: list[dict]) -> str:
+    """Ask the model, servicing any tool calls it makes along the way."""
+    tools = [FIND_PLACES_TOOL] if places is not None else []
+    conversation = list(messages)
+
+    for _ in range(MAX_TOOL_ROUNDS):
+        response = await asyncio.to_thread(
+            client.responses.create,
+            model="gpt-4.1-mini",
+            input=conversation,
+            tools=tools,
+        )
+
+        calls = [item for item in response.output if item.type == "function_call"]
+        if not calls:
+            return response.output_text
+
+        for call in calls:
+            implementation = TOOL_IMPLEMENTATIONS.get(call.name)
+            try:
+                arguments = json.loads(call.arguments or "{}")
+            except json.JSONDecodeError:
+                arguments = {}
+            result = (
+                await implementation(arguments)
+                if implementation is not None
+                else {"error": f"unknown tool {call.name}"}
+            )
+            conversation.append(call.model_dump(exclude_none=True))
+            conversation.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": call.call_id,
+                    "output": json.dumps(result, ensure_ascii=False),
+                }
+            )
+
+    # Tool budget spent: answer with what the lookups already returned.
+    response = await asyncio.to_thread(
+        client.responses.create, model="gpt-4.1-mini", input=conversation
+    )
+    return response.output_text
+
+
 async def ask_openai(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -277,18 +413,15 @@ async def ask_openai(
     )
 
     history = await session.get_ai_context(CHANNEL, tid)
+    messages = [{"role": "system", "content": system_prompt()}] + history
 
     await update.message.reply_text("Думаю как местный 😎")
 
     try:
-        response = client.responses.create(
-            model="gpt-4.1-mini",
-            input=[{"role": "system", "content": MIKE_PROMPT}] + history,
-        )
-        answer = response.output_text
+        answer = await run_model(messages)
 
         lead_ready = "ЗАЯВКА_ГОТОВА" in answer
-        answer = answer.replace("ЗАЯВКА_ГОТОВА", "").strip()
+        answer = sanitize_map_links(answer.replace("ЗАЯВКА_ГОТОВА", "").strip())
         await session.append_message(CHANNEL, tid, role="assistant", content=answer)
 
         if lead_ready:
@@ -354,12 +487,23 @@ async def send_lead_to_admin(
 
 
 async def post_init(application: Application) -> None:
-    global store
+    global store, places
     store = await SessionStore.create(DATABASE_URL)
+
+    if GOOGLE_PLACES_API_KEY:
+        places = PlacesClient(GOOGLE_PLACES_API_KEY)
+    else:
+        print(
+            "Внимание: нет GOOGLE_PLACES_API_KEY — Майк будет отвечать "
+            "без поиска реальных мест в Google Картах."
+        )
 
 
 async def post_shutdown(application: Application) -> None:
-    global store
+    global store, places
+    if places is not None:
+        await places.close()
+        places = None
     if store is not None:
         await store.close()
         store = None

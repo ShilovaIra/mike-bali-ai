@@ -25,6 +25,8 @@ nano /opt/mike-bali-ai/.env
 
 The workflow preserves `.env` across deploys. The first run fails until that file exists with real secrets, including `POSTGRES_PASSWORD`.
 
+`GOOGLE_PLACES_API_KEY` is optional. Without it Mike still runs, but restaurant and cafe answers come from model memory instead of Google Places, so he can name a place that does not exist. Map links are still rewritten to a working `maps/search/?api=1&query=…` URL; he never sends shortened `goo.gl` links.
+
 Compose starts a dedicated Postgres (`POSTGRES_DB=mike_bali`, unpublished port, volume `postgres_data`). Do not point `DATABASE_URL` at the Phuket database.
 
 Schema is applied automatically when the bot starts. After the first boot you can create a staff login (admin UI comes later):
