@@ -29,7 +29,9 @@ The workflow preserves `.env` across deploys. The first run fails until that fil
 
 Compose starts a dedicated Postgres (`POSTGRES_DB=mike_bali`, unpublished port, volume `postgres_data`). Do not point `DATABASE_URL` at the Phuket database.
 
-Schema is applied automatically when the bot starts. After the first boot you can create a staff login (admin UI comes later):
+Schema is applied automatically when the bot starts. The admin panel is published on port **8080** (`ADMIN_WEB_PORT`). Set `ADMIN_JWT_SECRET` in `.env` before the first deploy that starts `admin-api`; without it that container exits. Open the port on the Droplet firewall if you need to reach the panel from outside. There is no TLS hostname in this setup.
+
+After the first boot, create a staff login:
 
 ```bash
 docker compose run --rm bot python scripts/create_admin_user.py \

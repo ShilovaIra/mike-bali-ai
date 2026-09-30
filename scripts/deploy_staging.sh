@@ -31,8 +31,8 @@ if [[ ! -f .env ]]; then
 fi
 
 if [[ "${SKIP_IMAGE_BUILD:-}" != "1" ]]; then
-  echo "→ Building image"
-  docker compose build bot
+  echo "→ Building images"
+  docker compose build bot admin-web
 fi
 
 echo "→ Starting containers"

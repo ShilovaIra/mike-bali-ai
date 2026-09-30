@@ -1,4 +1,6 @@
 .venv/
+admin/node_modules/
+admin/dist/
 __pycache__/
 *.py[cod]
 .env

@@ -53,5 +53,18 @@ async def store() -> SessionStore:
     session_store = await SessionStore.create(url)
     async with session_store.pool.acquire() as conn:
         await conn.execute(TRUNCATE_SQL)
+        await conn.execute(
+            """
+            DELETE FROM partner_types
+            WHERE slug NOT IN (
+                'esim',
+                'money_exchange',
+                'excursions',
+                'visa_service',
+                'beauty_service',
+                'vehicle_rent'
+            )
+            """
+        )
     yield session_store
     await session_store.close()

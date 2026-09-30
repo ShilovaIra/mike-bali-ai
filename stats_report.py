@@ -45,6 +45,22 @@ def _topic_catalog(
     return order, labels
 
 
+def labeled_topic_rows(
+    topics: dict[str, TopicCount],
+    partner_types: Sequence[PartnerType],
+) -> list[dict[str, object]]:
+    _order, labels = _topic_catalog(partner_types)
+    return [
+        {
+            "slug": slug,
+            "label": labels.get(slug, slug),
+            "unique_users": count.unique_users,
+            "taps": count.taps,
+        }
+        for slug, count in topics.items()
+    ]
+
+
 def _format_topic_section(
     title: str,
     topics: dict[str, TopicCount],
