@@ -29,7 +29,9 @@ The workflow preserves `.env` across deploys. The first run fails until that fil
 
 Compose starts a dedicated Postgres (`POSTGRES_DB=mike_bali`, unpublished port, volume `postgres_data`). Do not point `DATABASE_URL` at the Phuket database.
 
-Schema is applied automatically when the bot starts. The admin panel is published on port **8080** (`ADMIN_WEB_PORT`). Set `ADMIN_JWT_SECRET` in `.env` before the first deploy that starts `admin-api`; without it that container exits. Open the port on the Droplet firewall if you need to reach the panel from outside. There is no TLS hostname in this setup.
+Schema is applied automatically when the bot starts. The admin panel is published on port **8080** (`ADMIN_WEB_PORT`). The partner cabinet is published on port **8081** (`PARTNER_WEB_PORT`). Set `ADMIN_JWT_SECRET` in `.env` before the first deploy that starts `admin-api`; without it that container exits. Open those ports on the Droplet firewall if you need to reach the panels from outside. There is no TLS hostname in this setup.
+
+Partner logins are created in the admin panel under **Пользователи партнёров**. Set `PARTNER_OFFER_BASE_URL` to the public origin of the partner cabinet (for example `http://DROPLET_IP:8081`) so Telegram offer buttons are counted as views and clicks. Leave it empty and Mike keeps sending each partner's own link, with no click stats.
 
 After the first boot, create a staff login:
 

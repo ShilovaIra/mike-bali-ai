@@ -32,8 +32,8 @@ jobs:
       - name: Build image on the runner
         run: |
           printf 'TELEGRAM_BOT_TOKEN=unused\nOPENAI_API_KEY=unused\nADMIN_CHAT_ID=\nPOSTGRES_PASSWORD=unused\nPOSTGRES_DB=mike_bali\n' > .env
-          docker compose build bot admin-web
-          docker save mike-bali-app:local mike-bali-admin-web:local | gzip -1 > "$RUNNER_TEMP/mike-bali-images.tgz"
+          docker compose build bot admin-web partner-web
+          docker save mike-bali-app:local mike-bali-admin-web:local mike-bali-partner-web:local | gzip -1 > "$RUNNER_TEMP/mike-bali-images.tgz"
           cp "$RUNNER_TEMP/mike-bali-images.tgz" mike-bali-images.tgz
 
       - name: Prepare upload directory on Droplet
@@ -96,3 +96,4 @@ jobs:
             docker compose logs --tail=40 bot
             docker compose ps --status running --format '{{.Service}}' | grep -qx bot
             docker compose ps --status running --format '{{.Service}}' | grep -qx admin-web
+            docker compose ps --status running --format '{{.Service}}' | grep -qx partner-web

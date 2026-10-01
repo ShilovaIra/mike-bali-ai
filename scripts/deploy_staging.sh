@@ -32,7 +32,7 @@ fi
 
 if [[ "${SKIP_IMAGE_BUILD:-}" != "1" ]]; then
   echo "→ Building images"
-  docker compose build bot admin-web
+  docker compose build bot admin-web partner-web
 fi
 
 echo "→ Starting containers"

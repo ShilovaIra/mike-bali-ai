@@ -21,6 +21,7 @@ from buttons import BUTTON_TO_TOPIC, build_reply_keyboard_rows
 from db.store import SessionStore
 from db.url import resolve_database_url
 from maps_links import sanitize_map_links
+from partner_dashboard.offers import wrap_partners_for_channel_user
 from partners import PartnerType, build_partner_cards, resolve_logo_path
 from places import PlacesClient
 from stats_report import format_bot_stats
@@ -305,6 +306,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_partner_topic(update: Update, partner_type: PartnerType):
     session = require_store()
     partners = await session.list_active_partners(partner_type.slug)
+    partners = await wrap_partners_for_channel_user(
+        session,
+        partners,
+        CHANNEL,
+        telegram_id(update),
+        public_base=os.environ.get("PARTNER_OFFER_BASE_URL", ""),
+    )
     intro_or_fallback, cards = build_partner_cards(partners, partner_type)
 
     await update.message.reply_text(

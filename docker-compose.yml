@@ -71,5 +71,20 @@ services:
     ports:
       - "${ADMIN_WEB_PORT:-8080}:80"
 
+  partner-web:
+    build:
+      context: ./partner
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ""
+    image: mike-bali-partner-web:local
+    pull_policy: never
+    restart: unless-stopped
+    depends_on:
+      admin-api:
+        condition: service_healthy
+    ports:
+      - "${PARTNER_WEB_PORT:-8081}:80"
+
 volumes:
   postgres_data:

@@ -12,6 +12,7 @@ from admin_api.tokens import create_access_token
 from db.passwords import verify_password
 from db.store import AdminUser, SessionStore
 from db.url import resolve_database_url
+from partner_dashboard.router import router as partner_dashboard_router
 from partners import Partner, PartnerType
 from stats_report import labeled_topic_rows
 
@@ -246,6 +247,8 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
         body: PartnerUserIn,
         _admin: AdminUser = Depends(require_admin),
     ) -> dict:
+        if await _store(request).get_admin_by_email(body.email):
+            raise HTTPException(status_code=409, detail="Email уже используется")
         user_id, email = await _store(request).create_partner_user(
             email=body.email,
             password=body.password,
@@ -263,4 +266,5 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
         if not deleted:
             raise HTTPException(status_code=404, detail="Пользователь не найден")
 
+    app.include_router(partner_dashboard_router)
     return app

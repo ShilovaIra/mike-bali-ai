@@ -1,6 +1,8 @@
 .venv/
 admin/node_modules/
 admin/dist/
+partner/node_modules/
+partner/dist/
 __pycache__/
 *.py[cod]
 .env
