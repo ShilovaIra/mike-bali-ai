@@ -2,6 +2,7 @@ const SOURCE_LABELS: Record<string, string> = {
   unknown: 'Неизвестно',
   instagram: 'Instagram',
   facebook: 'Facebook',
+  tgtrack: 'TgTrack',
 }
 
 export function sourceLabel(source: string): string {

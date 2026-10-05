@@ -14,7 +14,7 @@ from db.store import AdminUser, SessionStore
 from db.url import resolve_database_url
 from partner_dashboard.router import router as partner_dashboard_router
 from partners import Partner, PartnerType
-from stats_report import labeled_topic_rows
+from stats_report import collapse_user_sources, labeled_topic_rows
 
 
 class LoginRequest(BaseModel):
@@ -128,6 +128,9 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
         bot_stats = await store.get_bot_stats()
         partner_types = await store.list_partner_types()
         payload = asdict(bot_stats)
+        payload["users_by_first_source"] = collapse_user_sources(
+            bot_stats.users_by_first_source
+        )
         payload["topics_all_time"] = labeled_topic_rows(
             bot_stats.topics_all_time, partner_types
         )

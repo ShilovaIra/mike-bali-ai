@@ -14,7 +14,14 @@ from telegram import (
     ReplyKeyboardMarkup,
     Update,
 )
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import (
+    Application,
+    ChatMemberHandler,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 from admin_ids import parse_admin_ids, sender_is_admin
 from buttons import BUTTON_TO_TOPIC, build_reply_keyboard_rows
@@ -25,6 +32,7 @@ from partner_dashboard.offers import wrap_partners_for_channel_user
 from partners import PartnerType, build_partner_cards, resolve_logo_path
 from places import PlacesClient
 from stats_report import format_bot_stats
+from tgtrack import TgTrack
 
 load_dotenv()
 
@@ -135,6 +143,7 @@ def system_prompt() -> str:
 
 
 ADMIN_IDS = parse_admin_ids(os.getenv("ADMIN_CHAT_ID"))
+tgtrack = TgTrack(os.getenv("TGTRACK_API_KEY"))
 
 
 def require_store() -> SessionStore:
@@ -189,7 +198,12 @@ def get_location_name(lat, lon):
         return "район не определён", f"Ошибка определения адреса: {e}"
 
 
+def schedule_tgtrack(update: Update) -> None:
+    asyncio.create_task(tgtrack.notify(update.to_dict()))
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    schedule_tgtrack(update)
     source = context.args[0] if context.args else "unknown"
     tid = telegram_id(update)
     await require_store().start_conversation(CHANNEL, tid, source=source)
@@ -200,6 +214,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Могу помочь с покупкой eSIM, обменом валюты, оформлением визы, арендой транспорта, поиском бьюти-услуг и интересных экскурсий, а также с арендой и покупкой недвижимости. Просто отправь вопрос в чат или воспользуйся кнопками из моего меню ⬇️",
         reply_markup=await build_reply_markup(),
     )
+
+
+async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    schedule_tgtrack(update)
 
 
 async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -541,6 +559,9 @@ def main():
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("stats", stats))
+    app.add_handler(
+        ChatMemberHandler(on_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER)
+    )
     app.add_handler(MessageHandler(filters.LOCATION, handle_location))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
