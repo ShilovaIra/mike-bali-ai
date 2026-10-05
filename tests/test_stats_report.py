@@ -104,3 +104,35 @@ def test_format_bot_stats_uses_partner_type_topic_labels():
 
     assert "🛵 Аренда транспорта: 2 users (3 taps)" in text
     assert "🛵 Аренда транспорта: 4 users (7 taps)" in text
+
+
+def test_format_bot_stats_fits_telegram_limit_when_first_sources_are_unique_click_ids():
+    sources = {
+        "instagram": 22,
+        "unknown": 22,
+        "instagram_stories": 7,
+        "telegram_channel": 6,
+        "tiktok": 5,
+        "restaurant_qr": 2,
+    }
+    for i in range(200):
+        sources[f"TgTrack-PJ{i:016x}"] = 1
+
+    text = format_bot_stats(_stats(users_by_first_source=sources))
+
+    assert len(text) <= 4096
+    assert "Instagram: 22" in text
+    assert "Неизвестно: 22" in text
+    assert "TgTrack: 200" in text
+    assert "TgTrack-PJ" not in text
+    assert "Недвижимость:" in text
+
+
+def test_format_bot_stats_fits_telegram_limit_when_many_distinct_campaign_sources():
+    sources = {f"campaign_{i:04d}": 1 for i in range(80)}
+
+    text = format_bot_stats(_stats(users_by_first_source=sources))
+
+    assert len(text) <= 4096
+    assert "Другие:" in text
+    assert text.count("\n  Campaign_") <= 20

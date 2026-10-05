@@ -12,13 +12,30 @@ _SOURCE_LABELS = {
     "unknown": "Неизвестно",
     "instagram": "Instagram",
     "facebook": "Facebook",
+    "tgtrack": "TgTrack",
 }
+
+_MAX_SOURCE_LINES = 20
 
 
 def _source_label(source: str) -> str:
     if source in _SOURCE_LABELS:
         return _SOURCE_LABELS[source]
     return source[:1].upper() + source[1:] if source else source
+
+
+def _canonical_source(source: str) -> str:
+    if source.lower().startswith("tgtrack"):
+        return "tgtrack"
+    return source
+
+
+def collapse_user_sources(users_by_first_source: dict[str, int]) -> dict[str, int]:
+    collapsed: dict[str, int] = {}
+    for source, count in users_by_first_source.items():
+        key = _canonical_source(source)
+        collapsed[key] = collapsed.get(key, 0) + count
+    return collapsed
 
 
 def _leads_label(count: int) -> str:
@@ -43,6 +60,22 @@ def _topic_catalog(
         t.slug for t in sorted(partner_types, key=lambda t: (t.sort_order, t.slug))
     )
     return order, labels
+
+
+def labeled_topic_rows(
+    topics: dict[str, TopicCount],
+    partner_types: Sequence[PartnerType],
+) -> list[dict[str, object]]:
+    _order, labels = _topic_catalog(partner_types)
+    return [
+        {
+            "slug": slug,
+            "label": labels.get(slug, slug),
+            "unique_users": count.unique_users,
+            "taps": count.taps,
+        }
+        for slug, count in topics.items()
+    ]
 
 
 def _format_topic_section(
@@ -76,11 +109,15 @@ def _format_topic_section(
 def _format_source_section(users_by_first_source: dict[str, int]) -> list[str]:
     lines = ["Источники:"]
     ranked = sorted(
-        users_by_first_source.items(),
+        collapse_user_sources(users_by_first_source).items(),
         key=lambda item: (-item[1], item[0]),
     )
-    for source, count in ranked:
+    shown = ranked[:_MAX_SOURCE_LINES]
+    rest = ranked[_MAX_SOURCE_LINES:]
+    for source, count in shown:
         lines.append(f"  {_source_label(source)}: {count}")
+    if rest:
+        lines.append(f"  Другие: {sum(count for _, count in rest)}")
     if len(lines) == 1:
         lines.append("  —")
     return lines
