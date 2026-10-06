@@ -9,7 +9,34 @@ from uuid import UUID
 import asyncpg
 
 from db.migrate import apply_schema_pool
+from knowledge_base import KnowledgeBaseEntry
 from partners import Partner, PartnerType
+
+
+def _knowledge_base_entry(row: asyncpg.Record) -> KnowledgeBaseEntry:
+    return KnowledgeBaseEntry(
+        id=row["id"],
+        name=row["name"],
+        partner_id=row["partner_id"],
+        referral_url=row["referral_url"] or "",
+        blurb=row["blurb"] or "",
+        kind=row["kind"] or "",
+        is_visible=row["is_visible"],
+    )
+
+
+_KNOWLEDGE_BASE_ROWS = """
+SELECT knowledge_base.id,
+       knowledge_base.partner_id,
+       partner.name,
+       partner.referral_url,
+       partner.blurb,
+       partner_type.topic_label AS kind,
+       partner.is_active AS is_visible
+FROM knowledge_base
+JOIN partners AS partner ON partner.id = knowledge_base.partner_id
+JOIN partner_types AS partner_type ON partner_type.slug = partner.type
+"""
 
 
 @dataclass(frozen=True)
@@ -373,6 +400,39 @@ class SessionStore:
         if row is None:
             raise KeyError(partner_id)
         return _partner_from_row(row)
+
+    async def add_knowledge_base_partner(self, partner_id: UUID) -> KnowledgeBaseEntry:
+        async with self._pool.acquire() as conn:
+            entry_id = await conn.fetchval(
+                """
+                INSERT INTO knowledge_base (partner_id)
+                VALUES ($1)
+                RETURNING id
+                """,
+                partner_id,
+            )
+            return await self._knowledge_base_entry_by_id(conn, entry_id)
+
+    async def list_knowledge_base(self) -> list[KnowledgeBaseEntry]:
+        async with self._pool.acquire() as conn:
+            rows = await conn.fetch(_KNOWLEDGE_BASE_ROWS + " ORDER BY name ASC")
+        return [_knowledge_base_entry(row) for row in rows]
+
+    async def delete_knowledge_base_entry(self, entry_id: UUID) -> None:
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                "DELETE FROM knowledge_base WHERE id = $1",
+                entry_id,
+            )
+
+    async def _knowledge_base_entry_by_id(
+        self, conn: asyncpg.Connection, entry_id: UUID
+    ) -> KnowledgeBaseEntry:
+        row = await conn.fetchrow(
+            _KNOWLEDGE_BASE_ROWS + " WHERE knowledge_base.id = $1",
+            entry_id,
+        )
+        return _knowledge_base_entry(row)
 
     async def create_partner_user(
         self,

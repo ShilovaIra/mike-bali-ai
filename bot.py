@@ -27,6 +27,7 @@ from admin_ids import parse_admin_ids, sender_is_admin
 from buttons import BUTTON_TO_TOPIC, build_reply_keyboard_rows
 from db.store import SessionStore
 from db.url import resolve_database_url
+from knowledge_base import format_for_prompt
 from maps_links import sanitize_map_links
 from partner_dashboard.offers import wrap_partners_for_channel_user
 from partners import PartnerType, build_partner_cards, resolve_logo_path
@@ -136,10 +137,16 @@ FIND_PLACES_TOOL = {
 MAX_TOOL_ROUNDS = 3
 
 
-def system_prompt() -> str:
-    if places is None:
-        return MIKE_PROMPT
-    return MIKE_PROMPT + PLACE_SEARCH_PROMPT
+def system_prompt(knowledge_base: str = "") -> str:
+    prompt = MIKE_PROMPT if places is None else MIKE_PROMPT + PLACE_SEARCH_PROMPT
+    if knowledge_base:
+        prompt += "\n" + knowledge_base
+    return prompt
+
+
+async def current_system_prompt() -> str:
+    knowledge = format_for_prompt(await require_store().list_knowledge_base())
+    return system_prompt(knowledge)
 
 
 ADMIN_IDS = parse_admin_ids(os.getenv("ADMIN_CHAT_ID"))
@@ -439,7 +446,7 @@ async def ask_openai(
     )
 
     history = await session.get_ai_context(CHANNEL, tid)
-    messages = [{"role": "system", "content": system_prompt()}] + history
+    messages = [{"role": "system", "content": await current_system_prompt()}] + history
 
     await update.message.reply_text("Думаю как местный 😎")
 
