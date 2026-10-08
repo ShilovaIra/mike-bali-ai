@@ -215,6 +215,39 @@ class SessionStore:
             )
             return [{"role": row["role"], "content": row["content"]} for row in reversed(rows)]
 
+    async def get_recent_messages(
+        self,
+        channel: str,
+        external_id: str,
+        *,
+        limit: int = 20,
+    ) -> list[dict[str, Any]]:
+        """Chat messages with metadata, oldest first."""
+        async with self._pool.acquire() as conn:
+            ctx = await self._fetch_active(conn, channel, external_id)
+            if ctx is None:
+                return []
+
+            rows = await conn.fetch(
+                """
+                SELECT role, content, metadata
+                FROM messages
+                WHERE conversation_id = $1
+                ORDER BY created_at DESC, id DESC
+                LIMIT $2
+                """,
+                ctx.conversation_id,
+                limit,
+            )
+            return [
+                {
+                    "role": row["role"],
+                    "content": row["content"],
+                    "metadata": _as_metadata(row["metadata"]),
+                }
+                for row in reversed(rows)
+            ]
+
     async def list_partner_types(self) -> list[PartnerType]:
         async with self._pool.acquire() as conn:
             rows = await conn.fetch(
@@ -829,6 +862,14 @@ class SessionStore:
             source="unknown",
             first_source=first_source,
         )
+
+
+def _as_metadata(value: Any) -> dict[str, Any]:
+    if not value:
+        return {}
+    if isinstance(value, str):
+        return json.loads(value)
+    return dict(value)
 
 
 def _partner_type_from_row(row: asyncpg.Record) -> PartnerType:

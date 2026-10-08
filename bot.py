@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from collections.abc import Sequence
 
 import requests
 from dotenv import load_dotenv
@@ -31,6 +32,11 @@ from knowledge_base import format_for_prompt
 from maps_links import sanitize_map_links
 from partner_dashboard.offers import wrap_partners_for_channel_user
 from partners import PartnerType, build_partner_cards, resolve_logo_path
+from place_suggestions import (
+    active_suggestion_slug,
+    build_place_reply,
+    requested_area,
+)
 from places import PlacesClient
 from stats_report import format_bot_stats
 from tgtrack import TgTrack
@@ -325,7 +331,78 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if partner_type is not None:
         await handle_partner_topic(update, partner_type)
         return
+
+    area = requested_area(user_text)
+    if area is not None:
+        messages = await session.get_recent_messages(CHANNEL, tid)
+        slug = active_suggestion_slug(messages, _menu_labels(partner_types))
+        followed = next((item for item in partner_types if item.slug == slug), None)
+        if followed is not None:
+            await reply_with_places(update, followed, user_text=user_text, area=area)
+            return
+
     await ask_openai(update, context, user_text)
+
+
+def _menu_labels(partner_types: Sequence[PartnerType]) -> set[str]:
+    return {item.button_label for item in partner_types} | set(BUTTON_TO_TOPIC)
+
+
+async def search_bali(query: str):
+    if places is None:
+        return []
+    return await places.search(query)
+
+
+async def reply_with_places(
+    update: Update,
+    partner_type: PartnerType,
+    *,
+    user_text: str,
+    area: str | None = None,
+):
+    """Suggest real places for an empty partner button, or for a later area."""
+    session = require_store()
+    tid = telegram_id(update)
+    metadata = {"place_suggestion_slug": partner_type.slug}
+
+    async def write_intro(prompt: str) -> str:
+        await update.message.reply_text("Думаю как местный 😎")
+        messages = [
+            {"role": "system", "content": await current_system_prompt()},
+            {"role": "user", "content": prompt},
+        ]
+        try:
+            return await run_model(messages)
+        except Exception:
+            return "Вот что нашлось."
+
+    await session.append_message(
+        CHANNEL,
+        tid,
+        role="user",
+        content=user_text,
+        metadata=metadata if area is None else None,
+    )
+    try:
+        text = await build_place_reply(
+            partner_type, search_bali, write_intro, area=area
+        )
+    except Exception as exc:
+        await update.message.reply_text(
+            f"Ошибка OpenAI:\n{exc}",
+            reply_markup=await build_reply_markup(),
+        )
+        return
+
+    await session.append_message(
+        CHANNEL,
+        tid,
+        role="assistant",
+        content=text,
+        metadata=metadata,
+    )
+    await update.message.reply_text(text, reply_markup=await build_reply_markup())
 
 
 async def handle_partner_topic(update: Update, partner_type: PartnerType):
@@ -339,13 +416,24 @@ async def handle_partner_topic(update: Update, partner_type: PartnerType):
         public_base=os.environ.get("PARTNER_OFFER_BASE_URL", ""),
     )
     intro_or_fallback, cards = build_partner_cards(partners, partner_type)
+    if not cards:
+        await reply_with_places(
+            update,
+            partner_type,
+            user_text=partner_type.button_label,
+        )
+        return
 
+    await session.append_message(
+        CHANNEL,
+        telegram_id(update),
+        role="user",
+        content=partner_type.button_label,
+    )
     await update.message.reply_text(
         intro_or_fallback,
         reply_markup=await build_reply_markup(),
     )
-    if not cards:
-        return
 
     for card in cards:
         keyboard = InlineKeyboardMarkup(
