@@ -19,33 +19,31 @@ colors:
   chart-mist: "#8a9096"
 typography:
   display:
-    fontFamily: "Fraunces, Iowan Old Style, Palatino, serif"
-    fontSize: "clamp(2rem, 3vw, 2.75rem)"
-    fontWeight: 560
-    lineHeight: 1.15
+    fontFamily: "Segoe UI, system-ui, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 600
+    lineHeight: 1.1
     letterSpacing: "-0.02em"
-    fontVariation: "'opsz' 48, 'SOFT' 20, 'WONK' 0"
   headline:
-    fontFamily: "Fraunces, Iowan Old Style, Palatino, serif"
+    fontFamily: "Segoe UI, system-ui, sans-serif"
     fontSize: "1.5rem"
-    fontWeight: 560
+    fontWeight: 600
     lineHeight: 1.25
     letterSpacing: "-0.015em"
-    fontVariation: "'opsz' 36, 'SOFT' 20, 'WONK' 0"
   title:
-    fontFamily: "Golos Text, system-ui, sans-serif"
+    fontFamily: "Segoe UI, system-ui, sans-serif"
     fontSize: "1.125rem"
     fontWeight: 600
     lineHeight: 1.35
     letterSpacing: "-0.01em"
   body:
-    fontFamily: "Golos Text, system-ui, sans-serif"
+    fontFamily: "Segoe UI, system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.5
     letterSpacing: "0em"
   label:
-    fontFamily: "Golos Text, system-ui, sans-serif"
+    fontFamily: "Segoe UI, system-ui, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 600
     lineHeight: 1.3
@@ -145,7 +143,7 @@ Mike is still the guide at the gate, already talking. The interface should feel 
 
 The ground is shade on stone, not the shirt. A tourist reads this on a phone. An admin reads it at a desk. Both need a light field with real contrast. The page is neutral stone grey. It is never linen, cream, sand, or a green wash.
 
-This system rejects the generic slate SaaS dashboard (Segoe UI, gray panels), the luxury Bali resort brochure (gold serif, infinity pool, barefoot-luxury copy), the travel-blog cream and sand template, the neon beach-club / nightlife promo, and the corporate real-estate CRM.
+This system rejects the generic slate SaaS dashboard (blue-gray panels, a component kit with no stone and no leaf), the luxury Bali resort brochure (gold serif, infinity pool, barefoot-luxury copy), the travel-blog cream and sand template, the neon beach-club / nightlife promo, and the corporate real-estate CRM.
 
 **Key Characteristics:**
 
@@ -153,7 +151,7 @@ This system rejects the generic slate SaaS dashboard (Segoe UI, gray panels), th
 - Neutral stone paper; the linen shirt stays in the portrait and never becomes a background
 - Temple stone carries the name; fresh green is the one filled action; no gold or rust fills
 - Flat surfaces, a 1px stone line, a shadow only under a dialog
-- Fraunces for the stitched name and page titles; Golos Text for everything said
+- One system sans for the wordmark, titles, and the rest of the cabinet
 - Short Russian labels that say what will happen
 
 ## 2. Colors
@@ -193,29 +191,25 @@ The palette is temple stone plus one fresh green, corrected for WCAG 2.2 AA. Dar
 
 ## 3. Typography
 
-**Display Font:** Fraunces (with Iowan Old Style, Palatino)
-**Body Font:** Golos Text (with system-ui)
-**Label Font:** Golos Text
+**Face:** Segoe UI, then system-ui, then sans-serif. One family for the wordmark, titles, labels, tables, and body.
 
-**Character:** Fraunces is the stitch: a sturdy old-style serif with the softness turned down, used where the shirt carries a word. Golos Text is the conversation: a plain Cyrillic grotesque for tables, forms, and buttons. Both cover Russian. The pairing is a handmade name next to a spoken sentence. It is not a fashion serif, and it is not Segoe UI.
-
-Load Fraunces as a variable font with Cyrillic, `WONK` 0 and `SOFT` 20. Use weight 560 where the variable axis is available, and 600 on a static cut. Load Golos Text with Cyrillic at 400 and 600.
+**Character:** The cabinet uses the system sans it had before the display pairing. Weight does the hierarchy. No downloaded serif, no second grotesque, no optical-size axis.
 
 ### Hierarchy
 
-- **Display** (560, clamp(2rem, 3vw, 2.75rem), line-height 1.15, tracking -0.02em): the wordmark and a rare page title. Ceiling stays at 2.75rem. This is a cabinet, not a poster.
-- **Headline** (560, 1.5rem, line-height 1.25, tracking -0.015em): the one title on a screen, such as "Вход" or "Статистика". `text-wrap: balance`.
-- **Title** (600, 1.125rem, line-height 1.35, tracking -0.01em): panel titles and dialog titles, in Golos Text.
+- **Wordmark** (600, 1.25rem, line-height 1.1, tracking -0.02em): MIKE, then BALI GUIDE under it at 0.75rem, weight 600, tracking 0.08em.
+- **Headline** (600, 1.5rem, line-height 1.25, tracking -0.015em): the one title on a screen, such as "Вход" or "Статистика". `text-wrap: balance`.
+- **Title** (600, 1.125rem, line-height 1.35, tracking -0.01em): panel titles and dialog titles.
 - **Body** (400, 1rem, line-height 1.5): answers, table cells, help text. Measure stays within 65 to 75 characters. `text-wrap: pretty` on paragraphs.
 - **Label** (600, 0.875rem, line-height 1.3, tracking 0.01em): buttons, nav, field labels, chips. Sentence case.
 
 ### Named Rules
 
-**The Stitch and Speech Rule.** Fraunces is the embroidery: the wordmark and page titles. Golos Text is the conversation: labels, tables, buttons, and body. Reversing them is prohibited.
+**The One Face Rule.** Segoe UI carries the wordmark, the page title, and the UI. A display serif on the name is out.
 
 **The Logo Lockup Rule.** The only all-caps setting is the wordmark: MIKE, then BALI GUIDE. Section titles, buttons, and nav are sentence case. No tracked uppercase eyebrow above a section.
 
-**The Straight Stitch Rule.** Fraunces ships with wonk at 0 and softness at 20. A high-contrast fashion serif, a script, or a gold headline is the luxury brochure, and it is out.
+**The Straight Stitch Rule.** A high-contrast fashion serif, a script, or a gold headline is the luxury brochure, and it is out.
 
 ## 4. Elevation
 
@@ -264,7 +258,7 @@ Panels, not card grids. A panel holds one job: a form, a table, a stat with its 
 - **Background:** surface on warung paper.
 - **Shadow strategy:** none at rest. Dialogs use the dialog shadow from Elevation.
 - **Border:** 1px gate line on all sides. No colored side stripe.
-- **Internal padding:** 24px. Inside a dialog, the title is a Golos Text title, then 16px, then the fields.
+- **Internal padding:** 24px. Inside a dialog, the title is a title, then 16px, then the fields.
 
 ### Inputs / Fields
 
@@ -295,8 +289,8 @@ Stats are a donut plus a legend, never a naked rainbow. Series order is fixed: F
 The signature. A two-prong candi, then the lockup, in temple stone.
 
 - **Mark:** two split gate prongs, 28px wide, current color. It appears once, at the top of the nav or on the login screen. It is not a repeating pattern, a background, or a bullet.
-- **Name:** MIKE in Fraunces, about 1.25rem, weight 560, tracking -0.02em.
-- **Role:** BALI GUIDE in Golos Text, 0.75rem, weight 600, tracking 0.08em, under the name. This is the logo, not a section eyebrow.
+- **Name:** MIKE in Segoe UI, about 1.25rem, weight 600, tracking -0.02em.
+- **Role:** BALI GUIDE in the same face, 0.75rem, weight 600, tracking 0.08em, under the name. This is the logo, not a section eyebrow.
 
 ## 6. Do's and Don'ts
 
@@ -306,14 +300,14 @@ The signature. A two-prong candi, then the lockup, in temple stone.
 - **Do** use Temple Stone (#2b2e32) for the wordmark and page titles.
 - **Do** use Fresh Green (#4b764b) for the filled button, the active nav item, the focus ring, and the lead count.
 - **Do** keep panels flat, with a 1px Gate Line (#6e7276) and 24px padding.
-- **Do** set Fraunces on the wordmark and page titles, and Golos Text on labels, tables, buttons, and body. Both with Cyrillic.
+- **Do** set Segoe UI on the wordmark, page titles, labels, tables, buttons, and body.
 - **Do** write button labels as a verb plus an object, in Russian, sentence case: "Сохранить партнёра", "Открыть карту".
 - **Do** pair every chart color with a text legend.
 - **Do** remove color and shadow transitions when `prefers-reduced-motion: reduce` is set.
 
 ### Don't:
 
-- **Don't** build the generic slate SaaS dashboard (Segoe UI, gray panels). No slate palette, no default sans as the brand face, no gray-on-gray tables.
+- **Don't** build the generic slate SaaS dashboard. No blue-gray slate palette, no gray-on-gray tables, no second display face on the title.
 - **Don't** drift into a luxury Bali resort brochure: gold serif, infinity pool, barefoot-luxury copy. No gold fill anywhere.
 - **Don't** use the travel-blog cream and sand template. Linen Shirt (#e7cfb5) is never a background.
 - **Don't** use a neon beach-club / nightlife promo: no cyan, magenta, or purple chart series, no glow, no glass.

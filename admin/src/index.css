@@ -1,8 +1,7 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: 'Golos Text', system-ui, sans-serif;
-  --font-display: Fraunces, 'Iowan Old Style', Palatino, serif;
+  --font-sans: 'Segoe UI', system-ui, sans-serif;
   --color-chalk: #ffffff;
   --color-temple: #2b2e32;
   --color-temple-hover: #44484c;
@@ -47,12 +46,11 @@ textarea {
 
 h1 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 1.5rem;
-  font-weight: 560;
+  font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.015em;
-  font-variation-settings: 'opsz' 36, 'SOFT' 20, 'WONK' 0;
   color: var(--color-temple);
   text-wrap: balance;
 }
@@ -79,12 +77,11 @@ h2 {
 }
 
 .wordmark-name {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: 1.25rem;
-  font-weight: 560;
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  font-variation-settings: 'opsz' 48, 'SOFT' 20, 'WONK' 0;
 }
 
 .wordmark-role {
