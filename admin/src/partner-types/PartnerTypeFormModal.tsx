@@ -63,46 +63,43 @@ export function PartnerTypeFormModal({ mode, slug: routeSlug, onClose, onSaved }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4"
-      onClick={onClose}
-    >
+    <div className="scrim" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={mode === 'create' ? 'Новый тип партнёра' : 'Изменить тип партнёра'}
-        className="mt-8 w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg"
+        className="dialog dialog-wide"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-6 text-xl font-semibold tracking-tight">
-          {mode === 'create' ? 'Новый тип партнёра' : 'Изменить тип партнёра'}
-        </h2>
+        <h2>{mode === 'create' ? 'Новый тип партнёра' : 'Изменить тип партнёра'}</h2>
         {!ready ? (
-          <p>Загрузка…</p>
+          <p className="quiet">Загрузка…</p>
         ) : mode === 'edit' && error === 'Тип партнёра не найден' ? (
-          <p role="alert">{error}</p>
+          <p className="alert" role="alert">
+            {error}
+          </p>
         ) : (
-          <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <label className="flex flex-col gap-1 text-sm">
+          <form onSubmit={onSubmit} className="stack">
+            <label className="field">
               Slug
               <input
                 value={form.slug}
                 onChange={(e) => setField('slug', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2 font-mono"
+                className="control control-mono"
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Порядок
               <input
                 type="number"
                 value={form.sort_order}
                 onChange={(e) => setField('sort_order', Number(e.target.value))}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="check">
               <input
                 type="checkbox"
                 checked={form.is_menu_visible}
@@ -110,84 +107,81 @@ export function PartnerTypeFormModal({ mode, slug: routeSlug, onClose, onSaved }
               />
               Видно в меню
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Кнопка меню
               <input
                 value={form.button_label}
                 onChange={(e) => setField('button_label', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Тема в статистике
               <input
                 value={form.topic_label}
                 onChange={(e) => setField('topic_label', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Intro
               <textarea
                 value={form.intro}
                 onChange={(e) => setField('intro', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 rows={2}
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Fallback
               <textarea
                 value={form.fallback}
                 onChange={(e) => setField('fallback', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 rows={2}
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Emoji подписи
               <input
                 value={form.caption_emoji}
                 onChange={(e) => setField('caption_emoji', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               CTA подписи
               <input
                 value={form.caption_cta}
                 onChange={(e) => setField('caption_cta', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Шаблон кнопки
               <input
                 value={form.button_template}
                 onChange={(e) => setField('button_template', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            {error && error !== 'Тип партнёра не найден' ? <p role="alert">{error}</p> : null}
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="rounded bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
-              >
-                Сохранить
+            {error && error !== 'Тип партнёра не найден' ? (
+              <p className="alert" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <div className="actions">
+              <button type="submit" className="btn-primary">
+                Сохранить тип
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded border border-slate-300 px-4 py-2 hover:bg-slate-50"
-              >
+              <button type="button" onClick={onClose} className="btn-secondary">
                 Отмена
               </button>
             </div>

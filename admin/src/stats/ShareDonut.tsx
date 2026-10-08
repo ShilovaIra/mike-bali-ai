@@ -1,8 +1,8 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { DonutSlice } from './buildDonutSlices'
 
-const PALETTE = ['#3B82F6', '#22D3EE', '#22C55E', '#15803D', '#8B5CF6', '#EC4899']
-const OTHER_COLOR = '#F59E0B'
+const SERIES = ['#4b764b', '#2b2e32', '#51565b', '#6e7276', '#8a9096']
+const OTHER_COLOR = '#44484c'
 
 type ShareDonutProps = {
   slices: DonutSlice[]
@@ -10,7 +10,7 @@ type ShareDonutProps = {
 
 function sliceColor(slice: DonutSlice, index: number): string {
   if (slice.key === 'other') return OTHER_COLOR
-  return PALETTE[index % PALETTE.length]!
+  return SERIES[index % SERIES.length]!
 }
 
 function ShareTooltip({
@@ -23,7 +23,7 @@ function ShareTooltip({
   if (!active || !payload?.[0]) return null
   const slice = payload[0].payload
   return (
-    <div className="rounded border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm">
+    <div className="tip">
       {slice.label}: {slice.value}
     </div>
   )
@@ -31,7 +31,7 @@ function ShareTooltip({
 
 export function ShareDonut({ slices }: ShareDonutProps) {
   if (slices.length === 0) {
-    return <p className="text-sm text-slate-600">Пока нет данных</p>
+    return <p className="quiet">Пока нет данных</p>
   }
 
   const colored = slices.map((slice, index) => ({
@@ -53,7 +53,8 @@ export function ShareDonut({ slices }: ShareDonutProps) {
               innerRadius="58%"
               outerRadius="88%"
               paddingAngle={1}
-              stroke="none"
+              stroke="#fafbfc"
+              strokeWidth={1}
             >
               {colored.map((slice) => (
                 <Cell key={slice.key} fill={slice.fill} />
@@ -63,18 +64,14 @@ export function ShareDonut({ slices }: ShareDonutProps) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <ul className="w-full min-w-0 space-y-2 text-sm">
+      <ul className="legend">
         {colored.map((slice) => (
-          <li key={slice.key} className="flex items-center justify-between gap-3">
-            <span className="flex min-w-0 items-center gap-2">
-              <span
-                className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: slice.fill }}
-                aria-hidden
-              />
-              <span className="truncate">{slice.label}</span>
+          <li key={slice.key}>
+            <span className="legend-label">
+              <span className="swatch" style={{ backgroundColor: slice.fill }} aria-hidden />
+              <span>{slice.label}</span>
             </span>
-            <span className="shrink-0 tabular-nums text-slate-700">{slice.percent}%</span>
+            <span className="legend-num">{slice.percent}%</span>
           </li>
         ))}
       </ul>
