@@ -35,6 +35,7 @@ from partners import PartnerType, build_partner_cards, resolve_logo_path
 from place_suggestions import (
     active_suggestion_slug,
     build_place_reply,
+    model_search_request,
     requested_area,
 )
 from places import PlacesClient
@@ -329,7 +330,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if topic:
         await session.record_topic_event(CHANNEL, tid, topic=topic)
     if partner_type is not None:
-        await handle_partner_topic(update, partner_type)
+        await handle_partner_topic(update, context, partner_type)
         return
 
     area = requested_area(user_text)
@@ -338,7 +339,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         slug = active_suggestion_slug(messages, _menu_labels(partner_types))
         followed = next((item for item in partner_types if item.slug == slug), None)
         if followed is not None:
-            await reply_with_places(update, followed, user_text=user_text, area=area)
+            await reply_with_places(
+                update, context, followed, user_text=user_text, area=area
+            )
             return
 
     await ask_openai(update, context, user_text)
@@ -356,12 +359,23 @@ async def search_bali(query: str):
 
 async def reply_with_places(
     update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
     partner_type: PartnerType,
     *,
     user_text: str,
     area: str | None = None,
 ):
     """Suggest real places for an empty partner button, or for a later area."""
+    if places is None:
+        # Same path as Phuket chat: Mike writes a Maps search link. No Places key.
+        await ask_openai(
+            update,
+            context,
+            model_search_request(partner_type, area=area),
+            metadata={"place_suggestion_slug": partner_type.slug},
+        )
+        return
+
     session = require_store()
     tid = telegram_id(update)
     metadata = {"place_suggestion_slug": partner_type.slug}
@@ -405,7 +419,11 @@ async def reply_with_places(
     await update.message.reply_text(text, reply_markup=await build_reply_markup())
 
 
-async def handle_partner_topic(update: Update, partner_type: PartnerType):
+async def handle_partner_topic(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    partner_type: PartnerType,
+):
     session = require_store()
     partners = await session.list_active_partners(partner_type.slug)
     partners = await wrap_partners_for_channel_user(
@@ -419,6 +437,7 @@ async def handle_partner_topic(update: Update, partner_type: PartnerType):
     if not cards:
         await reply_with_places(
             update,
+            context,
             partner_type,
             user_text=partner_type.button_label,
         )
@@ -543,7 +562,9 @@ async def ask_openai(
 
         lead_ready = "ЗАЯВКА_ГОТОВА" in answer
         answer = sanitize_map_links(answer.replace("ЗАЯВКА_ГОТОВА", "").strip())
-        await session.append_message(CHANNEL, tid, role="assistant", content=answer)
+        await session.append_message(
+            CHANNEL, tid, role="assistant", content=answer, metadata=metadata
+        )
 
         if lead_ready:
             lead = await session.create_lead(

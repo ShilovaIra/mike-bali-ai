@@ -13,6 +13,7 @@ from place_suggestions import (
     build_place_reply,
     compose_reply,
     intro_request,
+    model_search_request,
     requested_area,
     suggest_places,
 )
@@ -323,3 +324,21 @@ async def test_place_reply_does_not_ask_mike_when_no_places_are_found():
     text = await build_place_reply(_partner_type(), search, write_intro)
 
     assert text == _partner_type().fallback
+
+
+def test_without_a_places_key_the_button_asks_for_maps_search_links():
+    text = model_search_request(_partner_type())
+
+    assert "Canggu" in text
+    assert "Ubud" in text
+    assert "Uluwatu" in text
+    assert "beauty salon" in text
+    assert "https://www.google.com/maps/search/?api=1&query=" in text
+    assert "Напишите Майку" not in text
+
+
+def test_named_area_asks_for_that_area_only():
+    text = model_search_request(_partner_type(), area="Seminyak")
+
+    assert "Seminyak" in text
+    assert "Canggu" not in text

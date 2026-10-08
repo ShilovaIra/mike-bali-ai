@@ -178,6 +178,26 @@ def _phrase(partner_type: PartnerType) -> str:
     return _QUERIES.get(partner_type.slug) or partner_type.slug.replace("_", " ")
 
 
+def model_search_request(partner_type: PartnerType, *, area: str | None = None) -> str:
+    """Ask Mike the way chat does when there is no Places API key.
+
+    The link is a Google Maps search URL, which resolves without a Places subscription.
+    """
+    phrase = _phrase(partner_type)
+    if area:
+        where = f"одно хорошее место в районе {area}"
+    else:
+        where = "по одному хорошему месту в районах Canggu, Ubud и Uluwatu"
+    return (
+        f"Пользователь нажал «{partner_type.topic_label}». "
+        f"Подбери {where} по запросу «{phrase}» на Бали. "
+        "Для каждого места напиши название и ссылку Google Карт строго по шаблону "
+        "https://www.google.com/maps/search/?api=1&query=НАЗВАНИЕ+РАЙОН+Bali. "
+        "Название латиницей, пробелы замени на +. "
+        "Не пиши, что партнёров нет, и не проси написать тебе."
+    )
+
+
 async def suggest_places(
     partner_type: PartnerType,
     search: Search,
