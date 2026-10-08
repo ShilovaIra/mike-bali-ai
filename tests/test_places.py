@@ -15,16 +15,7 @@ from places import (
     PlacesClient,
 )
 
-SAMPLE_PLACE = {
-    "id": "ChIJ_seniman",
-    "displayName": {"text": "Seniman Coffee Studio", "languageCode": "en"},
-    "formattedAddress": "Jalan Sriwedari, Ubud, Bali 80571, Indonesia",
-    "googleMapsUri": "https://maps.google.com/?cid=1234567890",
-    "rating": 4.6,
-    "userRatingCount": 4120,
-    "primaryTypeDisplayName": {"text": "Кофейня"},
-    "currentOpeningHours": {"openNow": True},
-}
+SAMPLE_PLACE = {"id": "ChIJ_seniman"}
 
 
 def client_returning(payload, status=200, recorder=None):
@@ -38,26 +29,15 @@ def client_returning(payload, status=200, recorder=None):
 
 
 @pytest.mark.asyncio
-async def test_search_returns_place_with_googles_own_link():
+async def test_search_pins_the_link_to_the_returned_place_id():
     places = client_returning({"places": [SAMPLE_PLACE]})
 
     results = await places.search("coffee Ubud")
 
     assert len(results) == 1
     place = results[0]
-    assert place.name == "Seniman Coffee Studio"
-    assert place.maps_url == "https://maps.google.com/?cid=1234567890"
-    assert place.rating == 4.6
-    assert place.open_now is True
-
-
-@pytest.mark.asyncio
-async def test_missing_google_uri_falls_back_to_a_place_pinned_search_url():
-    raw = {key: value for key, value in SAMPLE_PLACE.items() if key != "googleMapsUri"}
-    places = client_returning({"places": [raw]})
-
-    (place,) = await places.search("coffee Ubud")
-
+    assert place.place_id == "ChIJ_seniman"
+    assert place.rating is None
     assert place.maps_url.startswith("https://www.google.com/maps/search/?api=1&query=")
     assert "query_place_id=ChIJ_seniman" in place.maps_url
 
@@ -93,11 +73,10 @@ async def test_limit_is_honoured_even_if_google_returns_more():
 
 
 @pytest.mark.asyncio
-async def test_places_without_an_id_or_name_are_dropped():
+async def test_places_without_an_id_are_dropped():
     payload = {
         "places": [
             {"displayName": {"text": "No id here"}},
-            {"id": "no-name"},
             SAMPLE_PLACE,
         ]
     }
@@ -105,7 +84,7 @@ async def test_places_without_an_id_or_name_are_dropped():
 
     results = await places.search("restaurants Canggu")
 
-    assert [place.name for place in results] == ["Seniman Coffee Studio"]
+    assert [place.place_id for place in results] == ["ChIJ_seniman"]
 
 
 @pytest.mark.asyncio

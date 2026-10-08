@@ -1,9 +1,10 @@
 """Real Bali places from the Google Places API.
 
 Mike used to name restaurants from model memory and guess their map links, so
-Tourists got invented places behind dead goo.gl links. Every place and every
-link handed to a Tourist now comes from this module, and the link is the
-canonical one Google returns for that place id.
+Tourists got invented places behind dead goo.gl links. Every link handed to a
+Tourist now comes from a place id Google returned. The request asks only for
+that id, which is the free Text Search field. Name, address, and rating are
+paid fields and are not requested.
 """
 
 from __future__ import annotations
@@ -30,18 +31,8 @@ REGION_CODE = "ID"
 DEFAULT_LIMIT = 5
 REQUEST_TIMEOUT_S = 10.0
 
-FIELD_MASK = ",".join(
-    (
-        "places.id",
-        "places.displayName",
-        "places.formattedAddress",
-        "places.googleMapsUri",
-        "places.rating",
-        "places.userRatingCount",
-        "places.primaryTypeDisplayName",
-        "places.currentOpeningHours.openNow",
-    )
-)
+# Ids only. Adding displayName, address, rating, or hours bills a paid SKU.
+FIELD_MASK = "places.id"
 
 
 @dataclass(frozen=True)
@@ -69,22 +60,16 @@ class Place:
         return payload
 
 
-def _parse_place(raw: dict) -> Place | None:
+def _parse_place(raw: dict, *, query: str) -> Place | None:
     place_id = raw.get("id") or ""
-    name = (raw.get("displayName") or {}).get("text") or ""
-    if not place_id or not name:
+    if not place_id:
         return None
 
     return Place(
-        name=name,
-        address=raw.get("formattedAddress") or "",
-        # googleMapsUri is authoritative; the search URL is a valid fallback.
-        maps_url=raw.get("googleMapsUri") or maps_place_url(name, place_id),
+        name=query,
+        address="",
+        maps_url=maps_place_url(query, place_id),
         place_id=place_id,
-        rating=raw.get("rating"),
-        rating_count=raw.get("userRatingCount"),
-        category=(raw.get("primaryTypeDisplayName") or {}).get("text") or None,
-        open_now=(raw.get("currentOpeningHours") or {}).get("openNow"),
     )
 
 
@@ -142,7 +127,7 @@ class PlacesClient:
             logger.warning("Places search failed for %r: %s", query, exc)
             return []
 
-        places = (_parse_place(raw) for raw in payload.get("places") or ())
+        places = (_parse_place(raw, query=query) for raw in payload.get("places") or ())
         return [place for place in places if place is not None][:limit]
 
     async def close(self) -> None:
