@@ -1,8 +1,8 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { DonutSlice } from './buildDonutSlices'
 
-const SERIES = ['#2c4030', '#8a4520', '#53542f', '#3f5c38', '#a07846']
-const OTHER_COLOR = '#6b6256'
+const SERIES = ['#4b764b', '#2b2e32', '#51565b', '#6e7276', '#8a9096']
+const OTHER_COLOR = '#44484c'
 
 type ShareDonutProps = {
   slices: DonutSlice[]
@@ -53,7 +53,7 @@ export function ShareDonut({ slices }: ShareDonutProps) {
               innerRadius="58%"
               outerRadius="88%"
               paddingAngle={1}
-              stroke="#fcfefc"
+              stroke="#fafbfc"
               strokeWidth={1}
             >
               {colored.map((slice) => (

@@ -6,13 +6,13 @@
     "colorMeta": {
       "temple-green": {
         "role": "primary",
-        "displayName": "Temple Green",
+        "displayName": "Temple Stone",
         "canonical": "oklch(34.9% 0.038 150.2)",
         "tonalRamp": ["#0b140d", "#1b2e1f", "#344838", "#4f6453", "#6b816f", "#8ea592", "#b6cab9", "#dfece1"]
       },
       "embroidery-rust": {
         "role": "secondary",
-        "displayName": "Embroidery Rust",
+        "displayName": "Fresh Green",
         "canonical": "oklch(47.0% 0.106 46.5)",
         "tonalRamp": ["#250600", "#4f0e00", "#6e2b00", "#8d4823", "#ad6541", "#d58964", "#f6b292", "#ffddc7"]
       },
@@ -96,7 +96,7 @@
     "shadows": [
       {
         "name": "dialog",
-        "value": "0 12px 32px rgb(28 43 31 / 0.14)",
+        "value": "0 12px 32px rgb(34 36 39 / 0.14)",
         "purpose": "Modal forms and menus only. Tinted with terrace ink."
       }
     ],
@@ -117,17 +117,17 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Ordinary commit: enter, save, navigate. Temple green, one per row with no second filled button.",
+      "description": "The one filled action: enter, save, navigate. Fresh green, one per row.",
       "html": "<button class=\"ds-btn-primary\" type=\"button\">Войти</button>",
-      "css": ".ds-btn-primary { background: #2c4030; color: #ffffff; font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary:hover { background: #3e5342; } .ds-btn-primary:focus-visible { outline: 2px solid #2c4030; outline-offset: 2px; } .ds-btn-primary:disabled { background: #e3efe5; color: #425244; cursor: not-allowed; } @media (prefers-reduced-motion: reduce) { .ds-btn-primary { transition: none; } }"
+      "css": ".ds-btn-primary { background: #4b764b; color: #ffffff; font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary:hover { background: #3a653b; } .ds-btn-primary:focus-visible { outline: 2px solid #4b764b; outline-offset: 2px; } .ds-btn-primary:disabled { background: #e7eaec; color: #44484c; cursor: not-allowed; } @media (prefers-reduced-motion: reduce) { .ds-btn-primary { transition: none; } }"
     },
     {
-      "name": "Rust Button",
+      "name": "Fresh Green Button",
       "kind": "button",
       "refersTo": "button-rust",
-      "description": "The single action that contacts a person or opens a place.",
+      "description": "Same fresh green as the primary. There is no second filled color.",
       "html": "<button class=\"ds-btn-rust\" type=\"button\">Открыть карту</button>",
-      "css": ".ds-btn-rust { background: #8a4520; color: #ffffff; font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-rust:hover { background: #6e3416; } .ds-btn-rust:focus-visible { outline: 2px solid #2c4030; outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-btn-rust { transition: none; } }"
+      "css": ".ds-btn-rust { background: #4b764b; color: #ffffff; font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-rust:hover { background: #3a653b; } .ds-btn-rust:focus-visible { outline: 2px solid #4b764b; outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-btn-rust { transition: none; } }"
     },
     {
       "name": "Secondary Button",
@@ -135,7 +135,7 @@
       "refersTo": "button-secondary",
       "description": "Cancel and leave. Surface fill with a gate line.",
       "html": "<button class=\"ds-btn-secondary\" type=\"button\">Выйти</button>",
-      "css": ".ds-btn-secondary { background: #fcfefc; color: #1c2b1f; font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 8px 12px; border: 1px solid #7e8a80; border-radius: 8px; cursor: pointer; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-secondary:hover { background: #e3efe5; } .ds-btn-secondary:focus-visible { outline: 2px solid #2c4030; outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-btn-secondary { transition: none; } }"
+      "css": ".ds-btn-secondary { background: #fafbfc; color: #222427; font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 8px 12px; border: 1px solid #6e7276; border-radius: 8px; cursor: pointer; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-secondary:hover { background: #e7eaec; } .ds-btn-secondary:focus-visible { outline: 2px solid #4b764b; outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-btn-secondary { transition: none; } }"
     },
     {
       "name": "Text Field",
@@ -143,15 +143,15 @@
       "refersTo": "input",
       "description": "Label above the field. Placeholder uses gate muted so it clears 4.5:1.",
       "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email</span><input class=\"ds-input\" type=\"email\" placeholder=\"name@bali.com\" /></label>",
-      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; font-family: 'Golos Text', system-ui, sans-serif; color: #1c2b1f; } .ds-field-label { font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; } .ds-input { background: #fcfefc; color: #1c2b1f; font: 400 1rem/1.5 'Golos Text', system-ui, sans-serif; padding: 10px 12px; border: 1px solid #7e8a80; border-radius: 8px; transition: border-color 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-input::placeholder { color: #425244; } .ds-input:focus { border-color: #2c4030; outline: 2px solid #2c4030; outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-input { transition: none; } }"
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; font-family: 'Golos Text', system-ui, sans-serif; color: #222427; } .ds-field-label { font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; } .ds-input { background: #fafbfc; color: #222427; font: 400 1rem/1.5 'Golos Text', system-ui, sans-serif; padding: 10px 12px; border: 1px solid #6e7276; border-radius: 8px; transition: border-color 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-input::placeholder { color: #44484c; } .ds-input:focus { border-color: #4b764b; outline: 2px solid #4b764b; outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-input { transition: none; } }"
     },
     {
       "name": "Side Nav",
       "kind": "nav",
       "refersTo": "nav-link",
-      "description": "Warung paper rail. Active link is terrace wash and temple green.",
+      "description": "Stone paper rail. Active link is terrace wash and fresh green.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link ds-nav-link-active\" href=\"#stats\" aria-current=\"page\">Статистика</a><a class=\"ds-nav-link\" href=\"#partners\">Партнёры</a><a class=\"ds-nav-link\" href=\"#knowledge\">База знаний</a></nav>",
-      "css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 208px; padding: 12px; background: #f3f8f4; border-right: 1px solid #7e8a80; font-family: 'Golos Text', system-ui, sans-serif; } .ds-nav-link { color: #425244; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; text-decoration: none; padding: 8px 12px; border-radius: 8px; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1), color 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-nav-link:hover { background: #e3efe5; color: #1c2b1f; } .ds-nav-link:focus-visible { outline: 2px solid #2c4030; outline-offset: 2px; } .ds-nav-link-active { background: #e3efe5; color: #2c4030; } @media (prefers-reduced-motion: reduce) { .ds-nav-link { transition: none; } }"
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 208px; padding: 12px; background: #f3f5f6; border-right: 1px solid #6e7276; font-family: 'Golos Text', system-ui, sans-serif; } .ds-nav-link { color: #44484c; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; text-decoration: none; padding: 8px 12px; border-radius: 8px; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1), color 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-nav-link:hover { background: #e7eaec; color: #222427; } .ds-nav-link:focus-visible { outline: 2px solid #4b764b; outline-offset: 2px; } .ds-nav-link-active { background: #e7eaec; color: #3a653b; } @media (prefers-reduced-motion: reduce) { .ds-nav-link { transition: none; } }"
     },
     {
       "name": "Partner Chip",
@@ -159,7 +159,7 @@
       "refersTo": "chip",
       "description": "A partner type or filter. Selected state is wash plus a green border, not color alone.",
       "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" type=\"button\" aria-pressed=\"false\">Вилла</button><button class=\"ds-chip ds-chip-selected\" type=\"button\" aria-pressed=\"true\">Ресторан</button></div>",
-      "css": ".ds-chips { display: flex; gap: 8px; font-family: 'Golos Text', system-ui, sans-serif; } .ds-chip { background: #fcfefc; color: #1c2b1f; font-size: 0.875rem; font-weight: 600; line-height: 1.3; padding: 4px 8px; border: 1px solid #7e8a80; border-radius: 4px; cursor: pointer; } .ds-chip:hover { background: #e3efe5; } .ds-chip:focus-visible { outline: 2px solid #2c4030; outline-offset: 2px; } .ds-chip-selected { background: #e3efe5; color: #2c4030; border-color: #2c4030; }"
+      "css": ".ds-chips { display: flex; gap: 8px; font-family: 'Golos Text', system-ui, sans-serif; } .ds-chip { background: #fafbfc; color: #222427; font-size: 0.875rem; font-weight: 600; line-height: 1.3; padding: 4px 8px; border: 1px solid #6e7276; border-radius: 4px; cursor: pointer; } .ds-chip:hover { background: #e7eaec; } .ds-chip:focus-visible { outline: 2px solid #4b764b; outline-offset: 2px; } .ds-chip-selected { background: #e7eaec; color: #3a653b; border-color: #4b764b; }"
     },
     {
       "name": "Panel",
@@ -167,32 +167,32 @@
       "refersTo": "panel",
       "description": "One job: a form, a table, or a stat. Flat, with a gate line. Dialogs add the ink shadow.",
       "html": "<section class=\"ds-panel\"><h2 class=\"ds-panel-title\">Партнёры</h2><p class=\"ds-panel-body\">Три новых предложения за неделю.</p></section>",
-      "css": ".ds-panel { background: #fcfefc; color: #1c2b1f; border: 1px solid #7e8a80; border-radius: 12px; padding: 24px; max-width: 65ch; } .ds-panel-title { font-family: 'Golos Text', system-ui, sans-serif; font-size: 1.125rem; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; margin: 0 0 16px; } .ds-panel-body { font-family: 'Golos Text', system-ui, sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.5; margin: 0; } .ds-panel-dialog { box-shadow: 0 12px 32px rgb(28 43 31 / 0.14); }"
+      "css": ".ds-panel { background: #fafbfc; color: #222427; border: 1px solid #6e7276; border-radius: 12px; padding: 24px; max-width: 65ch; } .ds-panel-title { font-family: 'Golos Text', system-ui, sans-serif; font-size: 1.125rem; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; margin: 0 0 16px; } .ds-panel-body { font-family: 'Golos Text', system-ui, sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.5; margin: 0; } .ds-panel-dialog { box-shadow: 0 12px 32px rgb(34 36 39 / 0.14); }"
     },
     {
       "name": "Wordmark",
       "kind": "custom",
       "refersTo": "wordmark",
-      "description": "Two gate prongs, then MIKE / BALI GUIDE in temple green. Once per screen.",
+      "description": "Two gate prongs, then MIKE / BALI GUIDE in temple stone. Once per screen.",
       "html": "<p class=\"ds-mark\"><svg class=\"ds-mark-gate\" viewBox=\"0 0 36 28\" width=\"32\" height=\"25\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M2 26V12l6-6 6 6v14H2zm2-2h8V13.2L8 8.4 4 13.2V24zm16 2V12l6-6 6 6v14H20zm2-2h8V13.2L26 8.4 22 13.2V24z\"/></svg><span class=\"ds-mark-name\">MIKE</span><span class=\"ds-mark-role\">BALI GUIDE</span></p>",
-      "css": ".ds-mark { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin: 0; color: #2c4030; background: #f3f8f4; padding: 8px 12px; } .ds-mark-gate { display: block; } .ds-mark-name { font-family: Fraunces, 'Iowan Old Style', Palatino, serif; font-weight: 560; font-size: 1.25rem; line-height: 1.1; letter-spacing: -0.02em; font-variation-settings: 'opsz' 48, 'SOFT' 20, 'WONK' 0; } .ds-mark-role { font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; }"
+      "css": ".ds-mark { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin: 0; color: #2b2e32; background: #f3f5f6; padding: 8px 12px; } .ds-mark-gate { display: block; } .ds-mark-name { font-family: Fraunces, 'Iowan Old Style', Palatino, serif; font-weight: 560; font-size: 1.25rem; line-height: 1.1; letter-spacing: -0.02em; font-variation-settings: 'opsz' 48, 'SOFT' 20, 'WONK' 0; } .ds-mark-role { font-family: 'Golos Text', system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; }"
     },
     {
       "name": "Share Legend",
       "kind": "custom",
       "refersTo": "panel",
       "description": "Chart series in fixed order, each with a text label. Color is never the only signal.",
-      "html": "<ul class=\"ds-legend\"><li><span class=\"ds-swatch\" style=\"background:#2c4030\"></span><span>Telegram</span><span class=\"ds-legend-num\">42%</span></li><li><span class=\"ds-swatch\" style=\"background:#8a4520\"></span><span>Карты</span><span class=\"ds-legend-num\">28%</span></li><li><span class=\"ds-swatch\" style=\"background:#53542f\"></span><span>Партнёры</span><span class=\"ds-legend-num\">18%</span></li><li><span class=\"ds-swatch\" style=\"background:#6b6256\"></span><span>Другое</span><span class=\"ds-legend-num\">12%</span></li></ul>",
-      "css": ".ds-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-family: 'Golos Text', system-ui, sans-serif; font-size: 1rem; color: #1c2b1f; min-width: 220px; } .ds-legend li { display: flex; align-items: center; gap: 8px; } .ds-swatch { width: 10px; height: 10px; border-radius: 4px; flex: none; } .ds-legend-num { margin-left: auto; font-variant-numeric: tabular-nums; color: #425244; }"
+      "html": "<ul class=\"ds-legend\"><li><span class=\"ds-swatch\" style=\"background:#4b764b\"></span><span>Telegram</span><span class=\"ds-legend-num\">42%</span></li><li><span class=\"ds-swatch\" style=\"background:#2b2e32\"></span><span>Карты</span><span class=\"ds-legend-num\">28%</span></li><li><span class=\"ds-swatch\" style=\"background:#51565b\"></span><span>Партнёры</span><span class=\"ds-legend-num\">18%</span></li><li><span class=\"ds-swatch\" style=\"background:#44484c\"></span><span>Другое</span><span class=\"ds-legend-num\">12%</span></li></ul>",
+      "css": ".ds-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-family: 'Golos Text', system-ui, sans-serif; font-size: 1rem; color: #222427; min-width: 220px; } .ds-legend li { display: flex; align-items: center; gap: 8px; } .ds-swatch { width: 10px; height: 10px; border-radius: 4px; flex: none; } .ds-legend-num { margin-left: auto; font-variant-numeric: tabular-nums; color: #44484c; }"
     }
   ],
   "narrative": {
     "northStar": "The Guide at the Gate",
-    "overview": "Mike looks like the portrait: a linen shirt, temple embroidery at the collar, a split gate and rice terraces behind him, already talking. The interface should feel like that meeting. Close, specific, in daylight. Density is a working cabinet, not a campaign page. Type does the hospitality. Color is the embroidery, used the way thread is used: a green word, a rust stitch, a gold prong, and a lot of quiet ground.\n\nThe ground is shade under the gate, not the shirt. A tourist reads this on a phone in late-afternoon sun. An admin reads it at a desk. Both need a light field with real contrast. Warmth stays in the mark, the rust action, and the words.\n\nThis system rejects the generic slate SaaS dashboard (Segoe UI, gray panels), the luxury Bali resort brochure (gold serif, infinity pool, barefoot-luxury copy), the travel-blog cream and sand template, the neon beach-club / nightlife promo, and the corporate real-estate CRM.",
+    "overview": "Mike is the guide at the gate. The interface should feel like that meeting in daylight: dark volcanic stone, and one bright leaf. Density is a working cabinet, not a campaign page. Type does the hospitality. Color is the gate: temple stone for the name and the page, fresh green for the action.\n\nThe ground is shade on stone, not the shirt. A tourist reads this on a phone. An admin reads it at a desk. Both need a light field with real contrast. The page is neutral stone grey. It is never linen, cream, sand, or a green wash.\n\nThis system rejects the generic slate SaaS dashboard (Segoe UI, blue-gray panels), the luxury Bali resort brochure (gold serif, infinity pool, barefoot-luxury copy), the travel-blog cream and sand template, the neon beach-club / nightlife promo, and the corporate real-estate CRM.",
     "keyCharacteristics": [
       "One voice for the Telegram chat, the admin, and the partner cabinet",
-      "Daylight paper with a green cast; the linen shirt stays in the portrait",
-      "Temple green does ordinary work; rust appears once; gold is only the gate mark",
+      "Neutral stone paper; the linen shirt stays in the portrait",
+      "Temple stone carries the name; fresh green is the one filled action",
       "Flat surfaces, a 1px stone line, a shadow only under a dialog",
       "Fraunces for the stitched name and page titles; Golos Text for everything said",
       "Short Russian labels that say what will happen"
@@ -200,12 +200,12 @@
     "rules": [
       {
         "name": "The Not-the-Shirt Rule",
-        "body": "Linen Shirt (#e7cfb5) is the portrait. It is never a page, panel, input, or button fill. Warmth is carried by the mark, the rust action, and the serif. If a screen looks like a travel-blog cream and sand template, the background is wrong.",
+        "body": "Linen Shirt (#e7cfb5) is the portrait. It is never a page, panel, input, or button fill. Sand, cream, and a green page wash are the same mistake. The page stays stone grey.",
         "section": "colors"
       },
       {
         "name": "The Embroidery Budget Rule",
-        "body": "Embroidery rust appears once per view, on the action that contacts a person or opens a place. Enter, save, and navigate are temple green. Two filled buttons in one row are prohibited.",
+        "body": "Fresh green is the only saturated color. It fills the one action button, marks the current section, and colors the lead count. The wordmark and the page stay stone. Two filled buttons in one row are prohibited.",
         "section": "colors"
       },
       {
@@ -230,15 +230,15 @@
       },
       {
         "name": "The Flat Gate Rule",
-        "body": "Surfaces are flat. Depth is a 1px gate line (#7e8a80). A shadow appears only under a dialog or a menu. If the shadow looks like a 2014 app, it is too dark and too tight: lighten it toward terrace ink at 14% and keep the blur at 32px.",
+        "body": "Surfaces are flat. Depth is a 1px gate line (#6e7276). A shadow appears only under a dialog or a menu. If the shadow looks like a 2014 app, it is too dark and too tight: lighten it toward terrace ink at 14% and keep the blur at 32px.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do set the page to Warung Paper (#f3f8f4) and body text to Terrace Ink (#1c2b1f).",
-      "Do use Temple Green (#2c4030) for the wordmark, primary buttons, active nav, and the focus ring.",
-      "Do spend Embroidery Rust (#8a4520) once per view, on the action that contacts a person or opens a place.",
-      "Do keep panels flat, with a 1px Gate Line (#7e8a80) and 24px padding.",
+      "Do set the page to Warung Paper (#f3f5f6) and body text to Terrace Ink (#222427).",
+      "Do use Temple Stone (#2b2e32) for the wordmark and page titles.",
+      "Do use Fresh Green (#4b764b) for the filled button, the active nav item, the focus ring, and the lead count.",
+      "Do keep panels flat, with a 1px Gate Line (#6e7276) and 24px padding.",
       "Do set Fraunces on the wordmark and page titles, and Golos Text on labels, tables, buttons, and body. Both with Cyrillic.",
       "Do write button labels as a verb plus an object, in Russian, sentence case: \"Сохранить партнёра\", \"Открыть карту\".",
       "Do pair every chart color with a text legend.",
@@ -250,7 +250,7 @@
       "Don't use the travel-blog cream and sand template. Linen Shirt (#e7cfb5) is never a background.",
       "Don't use a neon beach-club / nightlife promo: no cyan, magenta, or purple chart series, no glow, no glass.",
       "Don't look like a corporate real-estate CRM: no dense gray grids, no tiny uppercase headers, no side-stripe alerts.",
-      "Don't put two filled buttons in one row, or use Embroidery Thread (#b46432) for text.",
+      "Don't put two filled buttons in one row, or use rust, gold, or a second green for text or fills.",
       "Don't carry meaning by color alone. Errors need a sentence. Charts need a legend. Selected chips need a state.",
       "Don't animate layout, bounce, or reveal content by hiding it until a class is added."
     ]
