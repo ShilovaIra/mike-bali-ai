@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict
 from uuid import UUID
 
+import asyncpg
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, EmailStr, Field
 
@@ -11,6 +12,7 @@ from admin_api.deps import require_admin
 from admin_api.tokens import create_access_token
 from db.passwords import verify_password
 from db.store import AdminUser, SessionStore
+from knowledge_base import KnowledgeBaseEntry
 from db.url import resolve_database_url
 from partner_dashboard.router import router as partner_dashboard_router
 from partners import Partner, PartnerType
@@ -69,6 +71,22 @@ class PartnerIn(BaseModel):
     logo_path: str = ""
     is_active: bool = True
     sort_order: int = 0
+
+
+class KnowledgeBaseIn(BaseModel):
+    partner_id: UUID
+
+
+def _knowledge_base_payload(entry: KnowledgeBaseEntry) -> dict:
+    return {
+        "id": str(entry.id),
+        "partner_id": str(entry.partner_id),
+        "name": entry.name,
+        "kind": entry.kind,
+        "blurb": entry.blurb,
+        "referral_url": entry.referral_url,
+        "in_chat": entry.is_visible,
+    }
 
 
 def _partner_payload(partner: Partner) -> dict:
@@ -182,6 +200,34 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
         except KeyError:
             raise HTTPException(status_code=404, detail="Партнёр не найден") from None
         return _partner_payload(updated)
+
+    @app.get("/api/knowledge-base")
+    async def list_knowledge_base(
+        request: Request,
+        _admin: AdminUser = Depends(require_admin),
+    ) -> list[dict]:
+        entries = await _store(request).list_knowledge_base()
+        return [_knowledge_base_payload(entry) for entry in entries]
+
+    @app.post("/api/knowledge-base", status_code=201)
+    async def add_knowledge_base_entry(
+        request: Request,
+        body: KnowledgeBaseIn,
+        _admin: AdminUser = Depends(require_admin),
+    ) -> dict:
+        try:
+            entry = await _store(request).add_knowledge_base_partner(body.partner_id)
+        except asyncpg.UniqueViolationError:
+            raise HTTPException(status_code=409, detail="Уже в базе знаний") from None
+        return _knowledge_base_payload(entry)
+
+    @app.delete("/api/knowledge-base/{entry_id}", status_code=204)
+    async def delete_knowledge_base_entry(
+        request: Request,
+        entry_id: UUID,
+        _admin: AdminUser = Depends(require_admin),
+    ) -> None:
+        await _store(request).delete_knowledge_base_entry(entry_id)
 
     @app.get("/api/partner-types")
     async def list_partner_types(

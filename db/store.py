@@ -9,7 +9,34 @@ from uuid import UUID
 import asyncpg
 
 from db.migrate import apply_schema_pool
+from knowledge_base import KnowledgeBaseEntry
 from partners import Partner, PartnerType
+
+
+def _knowledge_base_entry(row: asyncpg.Record) -> KnowledgeBaseEntry:
+    return KnowledgeBaseEntry(
+        id=row["id"],
+        name=row["name"],
+        partner_id=row["partner_id"],
+        referral_url=row["referral_url"] or "",
+        blurb=row["blurb"] or "",
+        kind=row["kind"] or "",
+        is_visible=row["is_visible"],
+    )
+
+
+_KNOWLEDGE_BASE_ROWS = """
+SELECT knowledge_base.id,
+       knowledge_base.partner_id,
+       partner.name,
+       partner.referral_url,
+       partner.blurb,
+       partner_type.topic_label AS kind,
+       partner.is_active AS is_visible
+FROM knowledge_base
+JOIN partners AS partner ON partner.id = knowledge_base.partner_id
+JOIN partner_types AS partner_type ON partner_type.slug = partner.type
+"""
 
 
 @dataclass(frozen=True)
@@ -187,6 +214,39 @@ class SessionStore:
                 limit,
             )
             return [{"role": row["role"], "content": row["content"]} for row in reversed(rows)]
+
+    async def get_recent_messages(
+        self,
+        channel: str,
+        external_id: str,
+        *,
+        limit: int = 20,
+    ) -> list[dict[str, Any]]:
+        """Chat messages with metadata, oldest first."""
+        async with self._pool.acquire() as conn:
+            ctx = await self._fetch_active(conn, channel, external_id)
+            if ctx is None:
+                return []
+
+            rows = await conn.fetch(
+                """
+                SELECT role, content, metadata
+                FROM messages
+                WHERE conversation_id = $1
+                ORDER BY created_at DESC, id DESC
+                LIMIT $2
+                """,
+                ctx.conversation_id,
+                limit,
+            )
+            return [
+                {
+                    "role": row["role"],
+                    "content": row["content"],
+                    "metadata": _as_metadata(row["metadata"]),
+                }
+                for row in reversed(rows)
+            ]
 
     async def list_partner_types(self) -> list[PartnerType]:
         async with self._pool.acquire() as conn:
@@ -373,6 +433,39 @@ class SessionStore:
         if row is None:
             raise KeyError(partner_id)
         return _partner_from_row(row)
+
+    async def add_knowledge_base_partner(self, partner_id: UUID) -> KnowledgeBaseEntry:
+        async with self._pool.acquire() as conn:
+            entry_id = await conn.fetchval(
+                """
+                INSERT INTO knowledge_base (partner_id)
+                VALUES ($1)
+                RETURNING id
+                """,
+                partner_id,
+            )
+            return await self._knowledge_base_entry_by_id(conn, entry_id)
+
+    async def list_knowledge_base(self) -> list[KnowledgeBaseEntry]:
+        async with self._pool.acquire() as conn:
+            rows = await conn.fetch(_KNOWLEDGE_BASE_ROWS + " ORDER BY name ASC")
+        return [_knowledge_base_entry(row) for row in rows]
+
+    async def delete_knowledge_base_entry(self, entry_id: UUID) -> None:
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                "DELETE FROM knowledge_base WHERE id = $1",
+                entry_id,
+            )
+
+    async def _knowledge_base_entry_by_id(
+        self, conn: asyncpg.Connection, entry_id: UUID
+    ) -> KnowledgeBaseEntry:
+        row = await conn.fetchrow(
+            _KNOWLEDGE_BASE_ROWS + " WHERE knowledge_base.id = $1",
+            entry_id,
+        )
+        return _knowledge_base_entry(row)
 
     async def create_partner_user(
         self,
@@ -769,6 +862,14 @@ class SessionStore:
             source="unknown",
             first_source=first_source,
         )
+
+
+def _as_metadata(value: Any) -> dict[str, Any]:
+    if not value:
+        return {}
+    if isinstance(value, str):
+        return json.loads(value)
+    return dict(value)
 
 
 def _partner_type_from_row(row: asyncpg.Record) -> PartnerType:

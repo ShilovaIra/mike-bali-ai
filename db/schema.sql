@@ -327,3 +327,9 @@ CREATE TABLE IF NOT EXISTS partner_referral_clicks (
     view_id UUID NOT NULL REFERENCES partner_views (id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS knowledge_base (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    partner_id UUID NOT NULL UNIQUE REFERENCES partners (id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

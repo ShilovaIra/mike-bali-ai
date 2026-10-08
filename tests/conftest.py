@@ -40,6 +40,7 @@ TRUNCATE TABLE
     partner_views,
     partner_access,
     partner_users,
+    knowledge_base,
     partners,
     admin_users
 RESTART IDENTITY CASCADE

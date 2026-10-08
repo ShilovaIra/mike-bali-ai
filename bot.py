@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from collections.abc import Sequence
 
 import requests
 from dotenv import load_dotenv
@@ -27,9 +28,16 @@ from admin_ids import parse_admin_ids, sender_is_admin
 from buttons import BUTTON_TO_TOPIC, build_reply_keyboard_rows
 from db.store import SessionStore
 from db.url import resolve_database_url
+from knowledge_base import format_for_prompt
 from maps_links import sanitize_map_links
 from partner_dashboard.offers import wrap_partners_for_channel_user
 from partners import PartnerType, build_partner_cards, resolve_logo_path
+from place_suggestions import (
+    active_suggestion_slug,
+    build_place_reply,
+    model_search_request,
+    requested_area,
+)
 from places import PlacesClient
 from stats_report import format_bot_stats
 from tgtrack import TgTrack
@@ -136,10 +144,16 @@ FIND_PLACES_TOOL = {
 MAX_TOOL_ROUNDS = 3
 
 
-def system_prompt() -> str:
-    if places is None:
-        return MIKE_PROMPT
-    return MIKE_PROMPT + PLACE_SEARCH_PROMPT
+def system_prompt(knowledge_base: str = "") -> str:
+    prompt = MIKE_PROMPT if places is None else MIKE_PROMPT + PLACE_SEARCH_PROMPT
+    if knowledge_base:
+        prompt += "\n" + knowledge_base
+    return prompt
+
+
+async def current_system_prompt() -> str:
+    knowledge = format_for_prompt(await require_store().list_knowledge_base())
+    return system_prompt(knowledge)
 
 
 ADMIN_IDS = parse_admin_ids(os.getenv("ADMIN_CHAT_ID"))
@@ -316,12 +330,100 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if topic:
         await session.record_topic_event(CHANNEL, tid, topic=topic)
     if partner_type is not None:
-        await handle_partner_topic(update, partner_type)
+        await handle_partner_topic(update, context, partner_type)
         return
+
+    area = requested_area(user_text)
+    if area is not None:
+        messages = await session.get_recent_messages(CHANNEL, tid)
+        slug = active_suggestion_slug(messages, _menu_labels(partner_types))
+        followed = next((item for item in partner_types if item.slug == slug), None)
+        if followed is not None:
+            await reply_with_places(
+                update, context, followed, user_text=user_text, area=area
+            )
+            return
+
     await ask_openai(update, context, user_text)
 
 
-async def handle_partner_topic(update: Update, partner_type: PartnerType):
+def _menu_labels(partner_types: Sequence[PartnerType]) -> set[str]:
+    return {item.button_label for item in partner_types} | set(BUTTON_TO_TOPIC)
+
+
+async def search_bali(query: str):
+    if places is None:
+        return []
+    return await places.search(query)
+
+
+async def reply_with_places(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    partner_type: PartnerType,
+    *,
+    user_text: str,
+    area: str | None = None,
+):
+    """Suggest real places for an empty partner button, or for a later area."""
+    if places is None:
+        # Same path as Phuket chat: Mike writes a Maps search link. No Places key.
+        await ask_openai(
+            update,
+            context,
+            model_search_request(partner_type, area=area),
+            metadata={"place_suggestion_slug": partner_type.slug},
+        )
+        return
+
+    session = require_store()
+    tid = telegram_id(update)
+    metadata = {"place_suggestion_slug": partner_type.slug}
+
+    async def write_intro(prompt: str) -> str:
+        await update.message.reply_text("Думаю как местный 😎")
+        messages = [
+            {"role": "system", "content": await current_system_prompt()},
+            {"role": "user", "content": prompt},
+        ]
+        try:
+            return await run_model(messages)
+        except Exception:
+            return "Вот что нашлось."
+
+    await session.append_message(
+        CHANNEL,
+        tid,
+        role="user",
+        content=user_text,
+        metadata=metadata if area is None else None,
+    )
+    try:
+        text = await build_place_reply(
+            partner_type, search_bali, write_intro, area=area
+        )
+    except Exception as exc:
+        await update.message.reply_text(
+            f"Ошибка OpenAI:\n{exc}",
+            reply_markup=await build_reply_markup(),
+        )
+        return
+
+    await session.append_message(
+        CHANNEL,
+        tid,
+        role="assistant",
+        content=text,
+        metadata=metadata,
+    )
+    await update.message.reply_text(text, reply_markup=await build_reply_markup())
+
+
+async def handle_partner_topic(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    partner_type: PartnerType,
+):
     session = require_store()
     partners = await session.list_active_partners(partner_type.slug)
     partners = await wrap_partners_for_channel_user(
@@ -332,13 +434,25 @@ async def handle_partner_topic(update: Update, partner_type: PartnerType):
         public_base=os.environ.get("PARTNER_OFFER_BASE_URL", ""),
     )
     intro_or_fallback, cards = build_partner_cards(partners, partner_type)
+    if not cards:
+        await reply_with_places(
+            update,
+            context,
+            partner_type,
+            user_text=partner_type.button_label,
+        )
+        return
 
+    await session.append_message(
+        CHANNEL,
+        telegram_id(update),
+        role="user",
+        content=partner_type.button_label,
+    )
     await update.message.reply_text(
         intro_or_fallback,
         reply_markup=await build_reply_markup(),
     )
-    if not cards:
-        return
 
     for card in cards:
         keyboard = InlineKeyboardMarkup(
@@ -439,7 +553,7 @@ async def ask_openai(
     )
 
     history = await session.get_ai_context(CHANNEL, tid)
-    messages = [{"role": "system", "content": system_prompt()}] + history
+    messages = [{"role": "system", "content": await current_system_prompt()}] + history
 
     await update.message.reply_text("Думаю как местный 😎")
 
@@ -448,7 +562,9 @@ async def ask_openai(
 
         lead_ready = "ЗАЯВКА_ГОТОВА" in answer
         answer = sanitize_map_links(answer.replace("ЗАЯВКА_ГОТОВА", "").strip())
-        await session.append_message(CHANNEL, tid, role="assistant", content=answer)
+        await session.append_message(
+            CHANNEL, tid, role="assistant", content=answer, metadata=metadata
+        )
 
         if lead_ready:
             lead = await session.create_lead(
