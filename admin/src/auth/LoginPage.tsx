@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { Wordmark } from '../brand/Wordmark'
 import { authApi } from './authApi'
 
 export function LoginPage() {
@@ -17,48 +18,53 @@ export function LoginPage() {
     event.preventDefault()
     setPending(true)
     setError(null)
-    const result = await authApi.login({ email, password })
-    setPending(false)
-    if (!result.ok) {
-      setError(result.error)
-      return
+    try {
+      const result = await authApi.login({ email, password })
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      navigate('/stats', { replace: true })
+    } catch {
+      setError('Не удалось войти. Проверьте соединение и попробуйте снова.')
+    } finally {
+      setPending(false)
     }
-    navigate('/stats', { replace: true })
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
-      <p className="mb-2 text-sm font-medium tracking-wide text-slate-500">Mike Bali AI</p>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Вход</h1>
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
+    <main className="login">
+      <Wordmark />
+      <h1>Вход</h1>
+      <form onSubmit={onSubmit} className="stack">
+        <label className="field">
           Email
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="rounded border border-slate-300 bg-white px-3 py-2"
+            className="control"
             autoComplete="username"
             required
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="field">
           Пароль
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded border border-slate-300 bg-white px-3 py-2"
+            className="control"
             autoComplete="current-password"
             required
           />
         </label>
-        {error ? <p role="alert">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-60"
-        >
+        {error ? (
+          <p className="alert" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <button type="submit" disabled={pending} className="btn-primary">
           Войти
         </button>
       </form>

@@ -91,41 +91,38 @@ export function PartnerFormModal({ mode, partnerId, types, onClose, onSaved }: P
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4"
-      onClick={onClose}
-    >
+    <div className="scrim" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={mode === 'create' ? 'Новый партнёр' : 'Изменить партнёра'}
-        className="mt-8 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
+        className="dialog"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-6 text-xl font-semibold tracking-tight">
-          {mode === 'create' ? 'Новый партнёр' : 'Изменить партнёра'}
-        </h2>
+        <h2>{mode === 'create' ? 'Новый партнёр' : 'Изменить партнёра'}</h2>
         {!ready ? (
-          <p>Загрузка…</p>
+          <p className="quiet">Загрузка…</p>
         ) : error === 'Партнёр не найден' ? (
-          <p role="alert">{error}</p>
+          <p className="alert" role="alert">
+            {error}
+          </p>
         ) : (
-          <form onSubmit={onSubmit} className="flex flex-col gap-4">
-            <label className="flex flex-col gap-1 text-sm">
+          <form onSubmit={onSubmit} className="stack">
+            <label className="field">
               Имя
               <input
                 value={form.name}
                 onChange={(e) => setField('name', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Тип
               <select
                 value={form.type}
                 onChange={(e) => setField('type', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               >
                 {typeOptions.map((type) => (
@@ -135,44 +132,44 @@ export function PartnerFormModal({ mode, partnerId, types, onClose, onSaved }: P
                 ))}
               </select>
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Ссылка
               <input
                 value={form.referral_url}
                 onChange={(e) => setField('referral_url', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Описание
               <textarea
                 value={form.blurb}
                 onChange={(e) => setField('blurb', e.target.value)}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 rows={3}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Путь к логотипу
               <input
                 value={form.logo_path}
                 onChange={(e) => setField('logo_path', e.target.value)}
                 placeholder="media/partners/logo.jpeg"
-                className="rounded border border-slate-300 bg-white px-3 py-2 font-mono"
+                className="control control-mono"
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
+            <label className="field">
               Порядок
               <input
                 type="number"
                 value={form.sort_order}
                 onChange={(e) => setField('sort_order', Number(e.target.value))}
-                className="rounded border border-slate-300 bg-white px-3 py-2"
+                className="control"
                 required
               />
             </label>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="check">
               <input
                 type="checkbox"
                 checked={form.is_active}
@@ -180,19 +177,16 @@ export function PartnerFormModal({ mode, partnerId, types, onClose, onSaved }: P
               />
               Активен
             </label>
-            {error ? <p role="alert">{error}</p> : null}
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="rounded bg-slate-900 px-4 py-2 text-white hover:bg-slate-800"
-              >
-                Сохранить
+            {error ? (
+              <p className="alert" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <div className="actions">
+              <button type="submit" className="btn-primary">
+                Сохранить партнёра
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded border border-slate-300 px-4 py-2 hover:bg-slate-50"
-              >
+              <button type="button" onClick={onClose} className="btn-secondary">
                 Отмена
               </button>
             </div>

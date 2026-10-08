@@ -1,0 +1,6 @@
+{
+  "files": ["admin/index.html", "partner/index.html"],
+  "insertBefore": "</body>",
+  "commentSyntax": "html",
+  "cspChecked": true
+}

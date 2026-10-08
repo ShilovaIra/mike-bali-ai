@@ -49,53 +49,59 @@ export function KnowledgeBasePage() {
   }, [])
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">База знаний</h1>
+    <main className="page">
+      <div className="page-head">
+        <h1>База знаний</h1>
         {ready ? (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="rounded bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-800"
-          >
-            Добавить
+          <button type="button" onClick={() => setAdding(true)} className="btn-primary">
+            Добавить запись
           </button>
         ) : null}
       </div>
-      {error ? <p role="alert">{error}</p> : null}
-      <table className="w-full border-collapse text-left text-sm">
-        <thead>
-          <tr className="border-b border-slate-300">
-            <th className="py-2 pr-4 font-medium">Имя</th>
-            <th className="py-2 pr-4 font-medium">Вид</th>
-            <th className="py-2 pr-4 font-medium">Ссылка</th>
-            <th className="py-2 pr-4 font-medium">В чате</th>
-            <th className="py-2 font-medium">Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.id} className="border-b border-slate-200">
-              <td className="py-2 pr-4">{entry.name}</td>
-              <td className="py-2 pr-4">{entry.kind}</td>
-              <td className="py-2 pr-4">{entry.referral_url}</td>
-              <td className="py-2 pr-4">В чате: {entry.in_chat ? 'да' : 'нет'}</td>
-              <td className="py-2">
-                <button
-                  type="button"
-                  className="text-slate-700 underline hover:text-slate-900"
-                  onClick={async () => {
-                    await knowledgeBaseApi.remove(entry.id)
-                    await reload()
-                  }}
-                >
-                  Удалить
-                </button>
-              </td>
+      {error ? (
+        <p className="alert" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className="sheet-wrap">
+        <table className="sheet">
+          <thead>
+            <tr>
+              <th>Имя</th>
+              <th>Вид</th>
+              <th>Ссылка</th>
+              <th>В чате</th>
+              <th>Действия</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr key={entry.id}>
+                <td>{entry.name}</td>
+                <td>{entry.kind}</td>
+                <td className="cell-quiet">{entry.referral_url}</td>
+                <td>
+                  <span className={entry.in_chat ? 'state-on' : 'quiet'}>
+                    {entry.in_chat ? 'да' : 'нет'}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="btn-danger"
+                    onClick={async () => {
+                      await knowledgeBaseApi.remove(entry.id)
+                      await reload()
+                    }}
+                  >
+                    Удалить запись
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {adding ? (
         <AddDialog
           choices={choices}
@@ -133,26 +139,27 @@ function AddDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4"
-      onClick={onClose}
-    >
+    <div className="scrim" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Добавить в базу знаний"
-        className="mt-8 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg"
+        className="dialog"
         onClick={(event) => event.stopPropagation()}
       >
-        <h2 className="mb-6 text-xl font-semibold tracking-tight">Добавить в базу знаний</h2>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          {error ? <p role="alert">{error}</p> : null}
-          <label className="flex flex-col gap-1 text-sm">
+        <h2>Добавить в базу знаний</h2>
+        <form onSubmit={onSubmit} className="stack">
+          {error ? (
+            <p className="alert" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <label className="field">
             Партнёр
             <select
               value={value}
               onChange={(event) => setValue(event.target.value)}
-              className="rounded border border-slate-300 bg-white px-3 py-2"
+              className="control"
               required
             >
               {choices.map((choice) => (
@@ -162,11 +169,8 @@ function AddDialog({
               ))}
             </select>
           </label>
-          <button
-            type="submit"
-            className="rounded bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-800"
-          >
-            Сохранить
+          <button type="submit" className="btn-primary">
+            Сохранить запись
           </button>
         </form>
       </div>

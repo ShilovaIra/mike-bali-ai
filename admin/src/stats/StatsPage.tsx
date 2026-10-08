@@ -26,18 +26,20 @@ export function StatsPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Статистика</h1>
-        <p role="alert">{error}</p>
+      <main className="page">
+        <h1 className="mb-6">Статистика</h1>
+        <p className="alert" role="alert">
+          {error}
+        </p>
       </main>
     )
   }
 
   if (!stats) {
     return (
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Статистика</h1>
-        <p>Загрузка…</p>
+      <main className="page">
+        <h1 className="mb-6">Статистика</h1>
+        <p className="quiet">Загрузка…</p>
       </main>
     )
   }
@@ -58,45 +60,47 @@ export function StatsPage() {
   )
 
   return (
-    <main className="mx-auto max-w-5xl space-y-10 px-4 py-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Статистика</h1>
+    <main className="page">
+      <h1 className="mb-6">Статистика</h1>
 
-      <section aria-label="Ключевые показатели" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <article className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-600">Всего пользователей</p>
-          <p className="text-2xl font-semibold">{stats.total_users}</p>
-        </article>
-        <article className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-600">Новые сегодня</p>
-          <p className="text-2xl font-semibold">{stats.new_users_today}</p>
-        </article>
-        <article className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-600">Активны сегодня</p>
-          <p className="text-2xl font-semibold">{stats.active_today}</p>
-        </article>
-        <article className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-600">Лиды (всего)</p>
-          <p className="text-2xl font-semibold">{stats.leads_all_time}</p>
-        </article>
-        <article className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-600">Новые за 7 дней</p>
-          <p className="text-2xl font-semibold">{stats.new_users_7d}</p>
-        </article>
-        <article className="rounded border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-600">Лиды (7 дней)</p>
-          <p className="text-2xl font-semibold">{stats.leads_7d}</p>
-        </article>
+      <section className="metrics" aria-label="Ключевые показатели">
+        <dl>
+          <div>
+            <dt>Всего пользователей</dt>
+            <dd>{stats.total_users}</dd>
+          </div>
+          <div>
+            <dt>Новые сегодня</dt>
+            <dd>{stats.new_users_today}</dd>
+          </div>
+          <div>
+            <dt>Активны сегодня</dt>
+            <dd>{stats.active_today}</dd>
+          </div>
+          <div>
+            <dt>Новые за 7 дней</dt>
+            <dd>{stats.new_users_7d}</dd>
+          </div>
+          <div>
+            <dt>Лиды (7 дней)</dt>
+            <dd>{stats.leads_7d}</dd>
+          </div>
+          <div>
+            <dt>Лиды (всего)</dt>
+            <dd className="lead">{stats.leads_all_time}</dd>
+          </div>
+        </dl>
       </section>
 
-      <section className="grid gap-8 lg:grid-cols-2">
-        <div>
-          <h2 className="mb-3 text-lg font-semibold">Популярные темы</h2>
+      <section className="charts">
+        <figure className="panel">
+          <h2>Популярные темы</h2>
           <ShareDonut slices={topicSlices} />
-        </div>
-        <div>
-          <h2 className="mb-3 text-lg font-semibold">Источники пользователей</h2>
+        </figure>
+        <figure className="panel">
+          <h2>Источники пользователей</h2>
           <ShareDonut slices={sourceSlices} />
-        </div>
+        </figure>
       </section>
     </main>
   )
