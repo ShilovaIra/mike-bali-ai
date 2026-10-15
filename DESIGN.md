@@ -15,8 +15,9 @@ colors:
   gate-line: "#6e7276"
   terrace-wash: "#e7eaec"
   madder: "#8e2f2b"
-  chart-ash: "#51565b"
-  chart-mist: "#8a9096"
+  chart-blue: "#397094"
+  chart-blue-deep: "#215271"
+  chart-blossom: "#8d5570"
 typography:
   display:
     fontFamily: "Segoe UI, system-ui, sans-serif"
@@ -179,13 +180,15 @@ The palette is temple stone plus one fresh green, corrected for WCAG 2.2 AA. Dar
 - **Terrace Wash** (#e7eaec): the active nav row, the selected chip, and the hover of a secondary button.
 - **Linen Shirt** (#e7cfb5): the portrait cloth. Reference only. See the rule below.
 - **Madder** (#8e2f2b): errors. White text on madder is about 7.4:1. The wash behind an error is #f4ecec, a small cool field, never the page.
-- **Chart Ash** (#51565b) and **Chart Mist** (#8a9096): extra chart slices with temple stone and fresh green. A chart still needs a text legend.
+- **Chart Blue** (#397094): a chart category. Dusty blue, about 4.9:1 on the page. Not a button, not a link.
+- **Chart Blue Deep** (#215271): the darker step of the same blue, for the next slice.
+- **Chart Blossom** (#8d5570): a chart category. Dusty rose, about 5.2:1 on the page. Not an error color. Errors stay madder.
 
 ### Named Rules
 
 **The Not-the-Shirt Rule.** Linen Shirt (#e7cfb5) is the portrait. It is never a page, panel, input, or button fill. Sand, cream, and beige are the same mistake. A green-tinted page is the old palette. The page stays Warung Paper.
 
-**The One Leaf Rule.** Fresh green is the only saturated color. It fills the one action button, marks the current section, and colors the lead count. The wordmark and the page stay stone. Two filled buttons in one row are prohibited.
+**The One Leaf Rule.** Fresh green is the only filled action. It marks the current section and the lead count. The wordmark and the page stay stone. Two filled buttons in one row are prohibited. Charts may also use Chart Blue and Chart Blossom, because a category needs its own hue. Those two colors do not appear on buttons, links, or the page.
 
 **The No Gold Rule.** No gold type, no gold buttons, no gold rules, no rust fills, no gold page.
 
@@ -278,7 +281,7 @@ The header on the cabinet only holds the secondary "Выйти" button, aligned 
 
 ### Charts
 
-Stats are a donut plus a legend, never a naked rainbow. Series order is fixed: Fresh Green, Temple Stone, Chart Ash, Gate Line, Chart Mist. "Other" uses Gate Muted.
+Stats are a donut plus a legend. Series order is fixed: Fresh Green, Chart Blue, Chart Blossom, Fresh Green Hover, Chart Blue Deep. "Other" uses Gate Muted. Color is never the only label.
 
 - **Shape:** the ring is a stroke, not a gradient. Slice gaps are 1px of surface.
 - **Legend:** every slice has a text label and a number beside a 10px swatch. The swatch is `aria-hidden`. Color is never the only label.

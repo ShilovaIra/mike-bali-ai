@@ -6,7 +6,6 @@ import { apiFetch, authApi, SESSION_EVENT } from './authApi'
 const links = [
   { to: '/stats', label: 'Статистика' },
   { to: '/partners', label: 'Партнёры' },
-  { to: '/partner-types', label: 'Типы партнёров' },
   { to: '/knowledge-base', label: 'База знаний' },
   { to: '/partner-users', label: 'Пользователи партнёров' },
 ]

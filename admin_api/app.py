@@ -6,6 +6,7 @@ from uuid import UUID
 
 import asyncpg
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from admin_api.deps import require_admin
@@ -15,7 +16,7 @@ from db.store import AdminUser, SessionStore
 from knowledge_base import KnowledgeBaseEntry
 from db.url import resolve_database_url
 from partner_dashboard.router import router as partner_dashboard_router
-from partners import Partner, PartnerType
+from partners import PACKAGE_ROOT, Partner, PartnerType, resolve_logo_path
 from stats_report import collapse_user_sources, labeled_topic_rows
 
 
@@ -200,6 +201,26 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
         except KeyError:
             raise HTTPException(status_code=404, detail="Партнёр не найден") from None
         return _partner_payload(updated)
+
+    @app.get("/api/partners/{partner_id}/logo")
+    async def partner_logo(
+        request: Request,
+        partner_id: UUID,
+        _admin: AdminUser = Depends(require_admin),
+    ) -> FileResponse:
+        partner = next(
+            (
+                item
+                for item in await _store(request).list_partners()
+                if item.id == partner_id
+            ),
+            None,
+        )
+        path = resolve_logo_path(partner.logo_path) if partner else None
+        media_dir = (PACKAGE_ROOT / "media" / "partners").resolve()
+        if path is None or not path.resolve().is_relative_to(media_dir):
+            raise HTTPException(status_code=404, detail="Логотип не найден")
+        return FileResponse(path)
 
     @app.get("/api/knowledge-base")
     async def list_knowledge_base(

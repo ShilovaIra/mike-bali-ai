@@ -27,7 +27,9 @@ export function StatsPage() {
   if (error) {
     return (
       <main className="page">
-        <h1 className="mb-6">Статистика</h1>
+        <div className="page-head">
+          <h1>Статистика</h1>
+        </div>
         <p className="alert" role="alert">
           {error}
         </p>
@@ -38,7 +40,9 @@ export function StatsPage() {
   if (!stats) {
     return (
       <main className="page">
-        <h1 className="mb-6">Статистика</h1>
+        <div className="page-head">
+          <h1>Статистика</h1>
+        </div>
         <p className="quiet">Загрузка…</p>
       </main>
     )
@@ -61,7 +65,9 @@ export function StatsPage() {
 
   return (
     <main className="page">
-      <h1 className="mb-6">Статистика</h1>
+      <div className="page-head">
+        <h1>Статистика</h1>
+      </div>
 
       <section className="metrics" aria-label="Ключевые показатели">
         <dl>
@@ -70,12 +76,12 @@ export function StatsPage() {
             <dd>{stats.total_users}</dd>
           </div>
           <div>
-            <dt>Новые сегодня</dt>
-            <dd>{stats.new_users_today}</dd>
-          </div>
-          <div>
             <dt>Активны сегодня</dt>
             <dd>{stats.active_today}</dd>
+          </div>
+          <div>
+            <dt>Новые сегодня</dt>
+            <dd>{stats.new_users_today}</dd>
           </div>
           <div>
             <dt>Новые за 7 дней</dt>

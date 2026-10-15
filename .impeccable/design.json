@@ -52,23 +52,17 @@
         "canonical": "oklch(44.5% 0.130 26.2)",
         "tonalRamp": ["#2a0102", "#590000", "#791a19", "#993a34", "#bb5850", "#e47c73", "#ffa89e", "#ffd6cf"]
       },
-      "terrace-leaf": {
+      "chart-blue": {
         "role": "chart",
-        "displayName": "Terrace Leaf",
-        "canonical": "oklch(44.2% 0.067 139.6)",
-        "tonalRamp": ["#081506", "#15300e", "#2f4b28", "#496742", "#66845e", "#89a981", "#b2ceab", "#dceed7"]
+        "displayName": "Chart Blue",
+        "canonical": "oklch(52.2% 0.082 240)",
+        "tonalRamp": ["#041018", "#0d2433", "#215271", "#397094", "#5a8eae", "#82b0c8", "#b4d3e2", "#e3f0f6"]
       },
-      "rice-olive": {
+      "chart-blossom": {
         "role": "chart",
-        "displayName": "Rice Olive",
-        "canonical": "oklch(43.5% 0.055 109.8)",
-        "tonalRamp": ["#121303", "#2b2b05", "#444520", "#5f613b", "#7c7d57", "#a0a27a", "#c5c7a4", "#e9ead3"]
-      },
-      "gate-stone": {
-        "role": "chart",
-        "displayName": "Gate Stone",
-        "canonical": "oklch(50.1% 0.022 75.1)",
-        "tonalRamp": ["#15110c", "#2f271d", "#494136", "#655c50", "#82796c", "#a79d90", "#cbc3b7", "#ede7df"]
+        "displayName": "Chart Blossom",
+        "canonical": "oklch(52.2% 0.082 350)",
+        "tonalRamp": ["#1c0c12", "#3a1c28", "#6b3b53", "#8d5570", "#a8758c", "#c49aab", "#e0c4ce", "#f6e8ed"]
       }
     },
     "typographyMeta": {
@@ -182,7 +176,7 @@
       "kind": "custom",
       "refersTo": "panel",
       "description": "Chart series in fixed order, each with a text label. Color is never the only signal.",
-      "html": "<ul class=\"ds-legend\"><li><span class=\"ds-swatch\" style=\"background:#4b764b\"></span><span>Telegram</span><span class=\"ds-legend-num\">42%</span></li><li><span class=\"ds-swatch\" style=\"background:#2b2e32\"></span><span>Карты</span><span class=\"ds-legend-num\">28%</span></li><li><span class=\"ds-swatch\" style=\"background:#51565b\"></span><span>Партнёры</span><span class=\"ds-legend-num\">18%</span></li><li><span class=\"ds-swatch\" style=\"background:#44484c\"></span><span>Другое</span><span class=\"ds-legend-num\">12%</span></li></ul>",
+      "html": "<ul class=\"ds-legend\"><li><span class=\"ds-swatch\" style=\"background:#4b764b\"></span><span>Telegram</span><span class=\"ds-legend-num\">42%</span></li><li><span class=\"ds-swatch\" style=\"background:#397094\"></span><span>Карты</span><span class=\"ds-legend-num\">28%</span></li><li><span class=\"ds-swatch\" style=\"background:#8d5570\"></span><span>Партнёры</span><span class=\"ds-legend-num\">18%</span></li><li><span class=\"ds-swatch\" style=\"background:#44484c\"></span><span>Другое</span><span class=\"ds-legend-num\">12%</span></li></ul>",
       "css": ".ds-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 1rem; color: #222427; min-width: 220px; } .ds-legend li { display: flex; align-items: center; gap: 8px; } .ds-swatch { width: 10px; height: 10px; border-radius: 4px; flex: none; } .ds-legend-num { margin-left: auto; font-variant-numeric: tabular-nums; color: #44484c; }"
     }
   ],
@@ -205,7 +199,7 @@
       },
       {
         "name": "The Embroidery Budget Rule",
-        "body": "Fresh green is the only saturated color. It fills the one action button, marks the current section, and colors the lead count. The wordmark and the page stay stone. Two filled buttons in one row are prohibited.",
+        "body": "Fresh green is the only filled action. It marks the current section and the lead count. The wordmark and the page stay stone. Two filled buttons in one row are prohibited. Charts may also use Chart Blue (#397094) and Chart Blossom (#8d5570). Those two colors do not appear on buttons, links, or the page.",
         "section": "colors"
       },
       {
@@ -241,6 +235,7 @@
       "Do keep panels flat, with a 1px Gate Line (#6e7276) and 24px padding.",
       "Do set Segoe UI on the wordmark, page titles, labels, tables, buttons, and body.",
       "Do write button labels as a verb plus an object, in Russian, sentence case: \"Сохранить партнёра\", \"Открыть карту\".",
+      "Do color chart categories in this order: Fresh Green (#4b764b), Chart Blue (#397094), Chart Blossom (#8d5570), Fresh Green Hover (#3a653b), Chart Blue Deep (#215271). Other stays Gate Muted.",
       "Do pair every chart color with a text legend.",
       "Do remove color and shadow transitions when `prefers-reduced-motion: reduce` is set."
     ],
