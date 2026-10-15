@@ -182,7 +182,7 @@ h2 {
 .partners-board {
   width: min(76rem, 100%);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 18rem;
+  grid-template-columns: minmax(0, 1fr) 24rem;
   column-gap: 32px;
   align-items: start;
 }
@@ -190,6 +190,18 @@ h2 {
 .partner-types-col {
   border-left: 1px solid var(--color-line);
   padding-left: 32px;
+}
+
+.partner-types-head {
+  flex-wrap: nowrap;
+}
+
+.partner-types-head h2 {
+  min-width: 0;
+}
+
+.partner-types-head .btn-primary {
+  flex-shrink: 0;
 }
 
 .partner-cards {

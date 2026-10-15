@@ -96,12 +96,12 @@ export function PartnersPage() {
       </section>
 
       <aside className="partner-types-col" aria-labelledby="partner-types-heading">
-        <div className="page-head">
+        <div className="page-head partner-types-head">
           <h2 id="partner-types-heading">Типы партнёров</h2>
           <button
             type="button"
             onClick={() => setTypeModal({ mode: 'create' })}
-            className="btn-secondary"
+            className="btn-primary"
           >
             Новый тип
           </button>
