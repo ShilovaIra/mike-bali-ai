@@ -417,7 +417,7 @@ h2 {
 .charts {
   display: grid;
   gap: 24px;
-  margin-top: 32px;
+  margin-top: 16px;
 }
 
 .panel {
