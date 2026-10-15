@@ -76,12 +76,12 @@ export function StatsPage() {
             <dd>{stats.total_users}</dd>
           </div>
           <div>
-            <dt>Новые сегодня</dt>
-            <dd>{stats.new_users_today}</dd>
-          </div>
-          <div>
             <dt>Активны сегодня</dt>
             <dd>{stats.active_today}</dd>
+          </div>
+          <div>
+            <dt>Новые сегодня</dt>
+            <dd>{stats.new_users_today}</dd>
           </div>
           <div>
             <dt>Новые за 7 дней</dt>
