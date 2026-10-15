@@ -1,7 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { DonutSlice } from './buildDonutSlices'
 
-const SERIES = ['#4b764b', '#2b2e32', '#51565b', '#6e7276', '#8a9096']
+const SERIES = ['#4b764b', '#397094', '#8d5570', '#3a653b', '#215271']
 const OTHER_COLOR = '#44484c'
 
 type ShareDonutProps = {
