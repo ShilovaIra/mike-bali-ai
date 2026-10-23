@@ -1,0 +1,130 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Require master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse any ref other than master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "Refusing to deploy ${{ github.ref }}. Run this workflow from master."
+          exit 1
+
+      - name: Confirm master
+        if: github.ref == 'refs/heads/master'
+        run: echo "Deploying ${{ github.sha }}"
+
+  test:
+    name: Test
+    needs: guard
+    uses: ./.github/workflows/test.yml
+
+  deploy:
+    name: Deploy bot to production
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+
+      - name: Pack application tree
+        run: |
+          tar czf "$RUNNER_TEMP/mike-bali-ai.tgz" \
+            --exclude .git \
+            --exclude .github \
+            --exclude .env \
+            --exclude .venv \
+            --exclude '*.tgz' \
+            .
+          cp "$RUNNER_TEMP/mike-bali-ai.tgz" mike-bali-ai.tgz
+
+      - name: Build image on the runner
+        run: |
+          printf 'TELEGRAM_BOT_TOKEN=unused\nOPENAI_API_KEY=unused\nADMIN_CHAT_ID=\nPOSTGRES_PASSWORD=unused\nPOSTGRES_DB=mike_bali\n' > .env
+          docker compose build bot admin-web partner-web
+          docker save mike-bali-app:local mike-bali-admin-web:local mike-bali-partner-web:local | gzip -1 > "$RUNNER_TEMP/mike-bali-images.tgz"
+          cp "$RUNNER_TEMP/mike-bali-images.tgz" mike-bali-images.tgz
+
+      - name: Prepare upload directory on Droplet
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            mkdir -p /opt/mike-bali-incoming /opt/mike-bali-ai
+            rm -f /opt/mike-bali-incoming/*.tgz
+
+      - name: Copy pack to Droplet
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          source: mike-bali-ai.tgz,mike-bali-images.tgz
+          target: /opt/mike-bali-incoming
+          overwrite: true
+          command_timeout: 15m
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+            tag_previous() {
+              if docker image inspect "$1:local" >/dev/null 2>&1; then
+                docker tag "$1:local" "$1:previous"
+              fi
+            }
+            tag_previous mike-bali-app
+            tag_previous mike-bali-admin-web
+            tag_previous mike-bali-partner-web
+
+            if [[ -f /opt/mike-bali-ai/.env ]]; then
+              cp -a /opt/mike-bali-ai/.env /tmp/mike-bali.env.bak
+            fi
+            tar xzf /opt/mike-bali-incoming/mike-bali-ai.tgz -C /opt/mike-bali-ai
+            if [[ -f /tmp/mike-bali.env.bak ]]; then
+              cp -a /tmp/mike-bali.env.bak /opt/mike-bali-ai/.env
+            fi
+            chmod +x /opt/mike-bali-ai/scripts/deploy_production.sh /opt/mike-bali-ai/scripts/restore_production_images.sh
+
+            if ! gunzip -c /opt/mike-bali-incoming/mike-bali-images.tgz | docker load; then
+              bash /opt/mike-bali-ai/scripts/restore_production_images.sh || true
+              exit 1
+            fi
+
+            set +e
+            SKIP_GIT_PULL=1 SKIP_IMAGE_BUILD=1 bash /opt/mike-bali-ai/scripts/deploy_production.sh
+            code=$?
+            set -e
+            if [[ "$code" -eq 0 ]]; then
+              exit 0
+            fi
+            echo "→ Release failed (exit $code). Restoring previous images."
+            if [[ "$code" -eq 2 ]]; then
+              bash /opt/mike-bali-ai/scripts/restore_production_images.sh --up || true
+            else
+              bash /opt/mike-bali-ai/scripts/restore_production_images.sh || true
+            fi
+            exit 1
