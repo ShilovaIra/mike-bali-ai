@@ -38,6 +38,7 @@ TRUNCATE TABLE
     users,
     partner_referral_clicks,
     partner_views,
+    saved_partners,
     partner_access,
     partner_users,
     knowledge_base,

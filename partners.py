@@ -72,6 +72,11 @@ def build_partner_button_text(partner: Partner, partner_type: PartnerType) -> st
     return partner_type.button_template.format(name=partner.name)
 
 
+def partner_type_chip(topic_label: str) -> str:
+    words = [part for part in topic_label.split() if any(char.isalpha() for char in part)]
+    return " ".join(words)
+
+
 def build_partner_cards(
     partners: Sequence[Partner],
     partner_type: PartnerType,
@@ -89,3 +94,8 @@ def build_partner_cards(
         for partner in partners
     ]
     return partner_type.intro, cards
+
+
+def build_partner_list_text(partner_type: PartnerType, partners: Sequence[Partner]) -> str:
+    blocks = [f"{partner.name}\n{partner.referral_url}" for partner in partners]
+    return partner_type.intro + "\n\n" + "\n\n".join(blocks)

@@ -333,3 +333,10 @@ CREATE TABLE IF NOT EXISTS knowledge_base (
     partner_id UUID NOT NULL UNIQUE REFERENCES partners (id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS saved_partners (
+    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    partner_id UUID NOT NULL REFERENCES partners (id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, partner_id)
+);

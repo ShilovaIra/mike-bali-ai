@@ -41,6 +41,7 @@ from place_suggestions import (
 from places import PlacesClient
 from stats_report import format_bot_stats
 from tgtrack import TgTrack
+from tourist_answers import answer_with_partner_list
 
 load_dotenv()
 
@@ -361,11 +362,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
+    chosen = await choose_partner_type(user_text, [item.slug for item in partner_types])
+    matched = next((item for item in partner_types if item.slug == chosen), None)
+    if matched is not None and await session.list_active_partners(matched.slug):
+        reply = await answer_with_partner_list(session, tid, user_text, matched)
+        await update.message.reply_text(reply, reply_markup=await build_reply_markup())
+        return
+
     await ask_openai(update, context, user_text)
 
 
 def _menu_labels(partner_types: Sequence[PartnerType]) -> set[str]:
     return {item.button_label for item in partner_types} | set(BUTTON_TO_TOPIC)
+
+
+async def choose_partner_type(text: str, slugs: list[str]) -> str | None:
+    from tourist_answers import choose_partner_type as choose
+
+    return await choose(text, slugs)
 
 
 async def search_bali(query: str):

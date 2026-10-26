@@ -3,6 +3,8 @@ admin/node_modules/
 admin/dist/
 partner/node_modules/
 partner/dist/
+tma/node_modules/
+tma/dist/
 __pycache__/
 *.py[cod]
 .env

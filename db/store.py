@@ -248,6 +248,24 @@ class SessionStore:
                 for row in reversed(rows)
             ]
 
+    async def list_thread_messages(
+        self, channel: str, external_id: str
+    ) -> list[dict[str, str]]:
+        async with self._pool.acquire() as conn:
+            ctx = await self._fetch_active(conn, channel, external_id)
+            if ctx is None:
+                return []
+            rows = await conn.fetch(
+                """
+                SELECT role, content
+                FROM messages
+                WHERE conversation_id = $1
+                ORDER BY created_at, id
+                """,
+                ctx.conversation_id,
+            )
+        return [{"role": row["role"], "content": row["content"]} for row in rows]
+
     async def list_partner_types(self) -> list[PartnerType]:
         async with self._pool.acquire() as conn:
             rows = await conn.fetch(
@@ -581,6 +599,60 @@ class SessionStore:
                 ctx.conversation_id,
             )
             return exists is not None
+
+    async def save_partner(
+        self, channel: str, external_id: str, partner_id: UUID
+    ) -> None:
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                user_id, _source = await self._ensure_user(conn, channel, external_id, "tma")
+                await conn.execute(
+                    """
+                    INSERT INTO saved_partners (user_id, partner_id)
+                    VALUES ($1, $2)
+                    ON CONFLICT DO NOTHING
+                    """,
+                    user_id,
+                    partner_id,
+                )
+
+    async def forget_partner(
+        self, channel: str, external_id: str, partner_id: UUID
+    ) -> None:
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                """
+                DELETE FROM saved_partners
+                WHERE partner_id = $3
+                  AND user_id = (
+                    SELECT user_id FROM identities
+                    WHERE channel = $1 AND external_id = $2
+                  )
+                """,
+                channel,
+                external_id,
+                partner_id,
+            )
+
+    async def list_saved_partners(self, channel: str, external_id: str) -> list[Partner]:
+        async with self._pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT partners.*
+                FROM saved_partners
+                JOIN identities
+                  ON identities.user_id = saved_partners.user_id
+                JOIN partners
+                  ON partners.id = saved_partners.partner_id
+                WHERE identities.channel = $1
+                  AND identities.external_id = $2
+                  AND partners.is_active
+                ORDER BY saved_partners.created_at, partners.name
+                """,
+                channel,
+                external_id,
+            )
+        return [_partner_from_row(row) for row in rows]
 
     async def record_inbound(
         self,
