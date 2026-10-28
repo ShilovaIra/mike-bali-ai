@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from 'react'
 
 type Message = {
   id: string
@@ -12,17 +12,30 @@ const greeting: Message = {
   text: 'Привет! Я Майк. Спрашивай что угодно о Бали.',
 }
 
+const trailingPunctuation = /[.,;:!?)]+$/
+
+function openInTelegram(event: MouseEvent<HTMLAnchorElement>, url: string) {
+  const openLink = window.Telegram?.WebApp?.openLink
+  if (!openLink) return
+  event.preventDefault()
+  openLink(url, { try_instant_view: false })
+}
+
 function MessageText({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g)
-  return parts.map((part, index) =>
-    /^https?:\/\//.test(part) ? (
-      <a key={index} href={part} target="_blank" rel="noreferrer">
-        {part}
-      </a>
-    ) : (
-      <span key={index}>{part}</span>
-    ),
-  )
+  return parts.map((part, index) => {
+    if (!/^https?:\/\//.test(part)) return <span key={index}>{part}</span>
+    const url = part.replace(trailingPunctuation, '')
+    const trailing = part.slice(url.length)
+    return (
+      <span key={index}>
+        <a href={url} target="_blank" rel="noreferrer" onClick={(event) => openInTelegram(event, url)}>
+          {url}
+        </a>
+        {trailing}
+      </span>
+    )
+  })
 }
 
 export function Chat({

@@ -25,6 +25,7 @@ export type ThreadMessage = {
 type TelegramWebApp = {
   initData?: string
   close?: () => void
+  openLink?: (url: string, options?: { try_instant_view?: boolean }) => void
 }
 
 declare global {
