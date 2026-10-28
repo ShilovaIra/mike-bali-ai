@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
@@ -29,7 +30,7 @@ def sign_init_data(user: dict, bot_token: str = BOT_TOKEN) -> str:
 
 
 @requires_db
-async def test_unsigned_visitor_sees_active_partners_in_sort_order_with_plain_links(store):
+async def test_unsigned_visitor_sees_active_partners_in_sort_order(store):
     hidden = await store.create_partner(
         name="Hidden FX",
         type="money_exchange",
@@ -63,11 +64,33 @@ async def test_unsigned_visitor_sees_active_partners_in_sort_order_with_plain_li
     assert response.status_code == 200
     body = response.json()
     assert [item["name"] for item in body] == ["Early FX", "Late FX"]
-    assert [item["referral_url"] for item in body] == [
-        "https://example.com/early",
-        "https://example.com/late",
-    ]
     assert all(item["id"] != str(hidden.id) for item in body)
+
+
+@requires_db
+async def test_partner_cards_omit_the_plain_referral_url(store, monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", BOT_TOKEN)
+    partner = await store.create_partner(
+        name="Early FX",
+        type="money_exchange",
+        referral_url="https://example.com/early",
+        sort_order=1,
+    )
+
+    from admin_api.app import create_app
+
+    app = create_app(store=store)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        catalog = await client.get("/api/tma/partners")
+        client.headers["Authorization"] = "tma " + sign_init_data({"id": 42, "first_name": "Анна"})
+        await client.put(f"/api/tma/favorites/{partner.id}")
+        saved = await client.get("/api/tma/favorites")
+
+    assert catalog.status_code == 200
+    assert saved.status_code == 200
+    assert "referral_url" not in catalog.json()[0]
+    assert "referral_url" not in saved.json()[0]
 
 
 @requires_db
@@ -115,6 +138,34 @@ async def test_bad_signature_cannot_read_thread_save_or_open_partner(store):
     assert messages.status_code == 401
     assert saved.status_code == 401
     assert opened.status_code == 401
+
+
+@requires_db
+async def test_bad_signature_cannot_open_a_partner_with_a_visitor_id(store, monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", BOT_TOKEN)
+    monkeypatch.setenv("PARTNER_OFFER_BASE_URL", "https://offers.example")
+    partner = await store.create_partner(
+        name="Early FX",
+        type="money_exchange",
+        referral_url="https://example.com/early",
+        sort_order=1,
+    )
+
+    from admin_api.app import create_app
+
+    app = create_app(store=store)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        opened = await client.post(
+            f"/api/tma/partners/{partner.id}/open",
+            headers={
+                "Authorization": "tma bad-signature",
+                "X-Visitor-Id": "6f1c0c3e-8c2a-4b1a-9d2e-1a2b3c4d5e6f",
+            },
+        )
+
+    assert opened.status_code == 401
+    assert "example.com" not in opened.text
 
 
 @requires_db
@@ -385,6 +436,151 @@ async def test_opening_a_partner_returns_a_tracked_link(store, monkeypatch):
     assert url.startswith("https://offers.example/r/")
     assert followed.status_code == 302
     assert followed.headers["location"] == "https://example.com/early"
+
+
+@requires_db
+async def test_unsigned_visitor_opens_a_partner_through_a_tracked_link(store, monkeypatch):
+    monkeypatch.setenv("PARTNER_OFFER_BASE_URL", "https://offers.example")
+    partner = await store.create_partner(
+        name="Early FX",
+        type="money_exchange",
+        referral_url="https://example.com/early",
+        sort_order=1,
+    )
+
+    from admin_api.app import create_app
+
+    app = create_app(store=store)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        opened = await client.post(
+            f"/api/tma/partners/{partner.id}/open",
+            headers={"X-Visitor-Id": "6f1c0c3e-8c2a-4b1a-9d2e-1a2b3c4d5e6f"},
+        )
+        assert opened.status_code == 200
+        url = opened.json()["url"]
+        followed = await client.get(
+            url.removeprefix("https://offers.example"),
+            follow_redirects=False,
+        )
+
+    assert url.startswith("https://offers.example/r/")
+    assert followed.status_code == 302
+    assert followed.headers["location"] == "https://example.com/early"
+
+
+@requires_db
+async def test_opening_again_records_another_view_for_the_same_tma_visitor(store, monkeypatch):
+    monkeypatch.setenv("PARTNER_OFFER_BASE_URL", "https://offers.example")
+    monkeypatch.setenv("ADMIN_JWT_SECRET", "test-admin-jwt-secret-at-least-32-chars")
+    await store.create_admin_user(email="admin@example.com", password="admin123")
+    partner = await store.create_partner(
+        name="Early FX",
+        type="money_exchange",
+        referral_url="https://example.com/early",
+        sort_order=1,
+    )
+    visitor = "6f1c0c3e-8c2a-4b1a-9d2e-1a2b3c4d5e6f"
+
+    from admin_api.app import create_app
+
+    app = create_app(store=store)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        first = await client.post(
+            f"/api/tma/partners/{partner.id}/open",
+            headers={"X-Visitor-Id": visitor},
+        )
+        second = await client.post(
+            f"/api/tma/partners/{partner.id}/open",
+            headers={"X-Visitor-Id": visitor},
+        )
+        login = await client.post(
+            "/api/auth/login",
+            json={"email": "admin@example.com", "password": "admin123"},
+        )
+        stats = await client.get(
+            "/api/stats",
+            headers={"Authorization": f"Bearer {login.json()['access_token']}"},
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["url"].startswith("https://offers.example/r/")
+    assert second.json()["url"].startswith("https://offers.example/r/")
+    assert first.json()["url"] != second.json()["url"]
+    assert stats.json()["users_by_first_source"]["tma"] == 1
+    assert await store.get_active_conversation("tma", visitor) is None
+
+
+@requires_db
+async def test_simultaneous_opens_from_one_visitor_both_return_tracked_links(store, monkeypatch):
+    monkeypatch.setenv("PARTNER_OFFER_BASE_URL", "https://offers.example")
+    partner = await store.create_partner(
+        name="Early FX",
+        type="money_exchange",
+        referral_url="https://example.com/early",
+        sort_order=1,
+    )
+    visitor = "6f1c0c3e-8c2a-4b1a-9d2e-1a2b3c4d5e6f"
+
+    from admin_api.app import create_app
+
+    app = create_app(store=store)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        first, second = await asyncio.gather(
+            client.post(
+                f"/api/tma/partners/{partner.id}/open",
+                headers={"X-Visitor-Id": visitor},
+            ),
+            client.post(
+                f"/api/tma/partners/{partner.id}/open",
+                headers={"X-Visitor-Id": visitor},
+            ),
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["url"].startswith("https://offers.example/r/")
+    assert second.json()["url"].startswith("https://offers.example/r/")
+    assert first.json()["url"] != second.json()["url"]
+
+
+@requires_db
+async def test_creating_the_same_visitor_twice_at_once_keeps_one_user(store):
+    visitor = "6f1c0c3e-8c2a-4b1a-9d2e-1a2b3c4d5e6f"
+
+    async def open_visitor() -> str:
+        user_id = await store.ensure_user("tma", visitor, source="tma")
+        return str(user_id)
+
+    created = await asyncio.gather(*(open_visitor() for _ in range(8)))
+    assert len(set(created)) == 1
+
+
+@requires_db
+async def test_open_without_an_offer_base_does_not_return_the_partner_url(store, monkeypatch):
+    monkeypatch.setenv("PARTNER_OFFER_BASE_URL", "")
+    partner = await store.create_partner(
+        name="Early FX",
+        type="money_exchange",
+        referral_url="https://example.com/early",
+        sort_order=1,
+    )
+
+    from admin_api.app import create_app
+
+    app = create_app(store=store)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        opened = await client.post(
+            f"/api/tma/partners/{partner.id}/open",
+            headers={"X-Visitor-Id": "6f1c0c3e-8c2a-4b1a-9d2e-1a2b3c4d5e6f"},
+        )
+
+    assert opened.status_code == 503
+    assert "example.com" not in opened.text
 
 
 @requires_db

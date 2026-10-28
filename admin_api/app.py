@@ -19,7 +19,7 @@ from db.store import AdminUser, SessionStore
 from knowledge_base import KnowledgeBaseEntry
 from db.url import resolve_database_url
 from maps_links import sanitize_map_links
-from partner_dashboard.offers import wrap_partners_for_channel_user
+from partner_dashboard.offers import wrap_partners_for_channel_user, wrap_partners_for_user
 from partner_dashboard.router import router as partner_dashboard_router
 from partners import (
     PACKAGE_ROOT,
@@ -130,7 +130,6 @@ def _tma_partner_payload(partner: Partner, partner_type: PartnerType | None) -> 
     return {
         "id": str(partner.id),
         "name": partner.name,
-        "referral_url": partner.referral_url,
         "blurb": partner.blurb or "",
         "type_label": type_label,
         "action": action,
@@ -473,11 +472,16 @@ def create_app(
         await _store(request).forget_partner("telegram", str(tourist["id"]), partner_id)
 
     @app.post("/api/tma/partners/{partner_id}/open")
-    async def open_tma_partner(
-        request: Request,
-        partner_id: UUID,
-        tourist: dict = Depends(require_tourist),
-    ) -> dict:
+    async def open_tma_partner(request: Request, partner_id: UUID) -> dict:
+        header = request.headers.get("authorization", "")
+        visitor_id = ""
+        tourist: dict | None = None
+        if header.startswith("tma "):
+            tourist = await require_tourist(request)
+        else:
+            visitor_id = request.headers.get("x-visitor-id", "").strip()
+            if not visitor_id:
+                raise HTTPException(status_code=401, detail="Нужна подпись Telegram")
         session = _store(request)
         partner = next(
             (
@@ -489,14 +493,30 @@ def create_app(
         )
         if partner is None:
             raise HTTPException(status_code=404, detail="Партнёр не найден")
-        wrapped = await wrap_partners_for_channel_user(
-            session,
-            [partner],
-            "telegram",
-            str(tourist["id"]),
-            public_base=os.environ.get("PARTNER_OFFER_BASE_URL", ""),
-        )
-        return {"url": wrapped[0].referral_url}
+        public_base = os.environ.get("PARTNER_OFFER_BASE_URL", "")
+        if tourist is not None:
+            wrapped = await wrap_partners_for_channel_user(
+                session,
+                [partner],
+                "telegram",
+                str(tourist["id"]),
+                public_base=public_base,
+            )
+        else:
+            user_id = await session.ensure_user("tma", visitor_id, source="tma")
+            wrapped = await wrap_partners_for_user(
+                session.pool,
+                [partner],
+                user_id,
+                public_base=public_base,
+            )
+        url = wrapped[0].referral_url
+        base = public_base.strip().rstrip("/")
+        if not (base.startswith("http://") or base.startswith("https://")) or not url.startswith(
+            f"{base}/r/"
+        ):
+            raise HTTPException(status_code=503, detail="Ссылка недоступна")
+        return {"url": url}
 
     @app.get("/api/tma/partners")
     async def list_tma_partners(request: Request) -> list[dict]:

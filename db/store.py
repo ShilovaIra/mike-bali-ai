@@ -811,6 +811,14 @@ class SessionStore:
                     topic,
                 )
 
+    async def ensure_user(self, channel: str, external_id: str, *, source: str) -> UUID:
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                user_id, _source = await self._ensure_user(
+                    conn, channel, external_id, source
+                )
+                return user_id
+
     async def _ensure_user(
         self,
         conn: asyncpg.Connection,
@@ -846,16 +854,31 @@ class SessionStore:
             """,
             source,
         )
-        await conn.execute(
+        inserted = await conn.fetchval(
             """
             INSERT INTO identities (user_id, channel, external_id)
             VALUES ($1, $2, $3)
+            ON CONFLICT (channel, external_id) DO NOTHING
+            RETURNING user_id
             """,
             user_id,
             channel,
             external_id,
         )
-        return user_id, source
+        if inserted is not None:
+            return user_id, source
+        await conn.execute("DELETE FROM users WHERE id = $1", user_id)
+        row = await conn.fetchrow(
+            """
+            SELECT u.id, u.first_source
+            FROM identities i
+            JOIN users u ON u.id = i.user_id
+            WHERE i.channel = $1 AND i.external_id = $2
+            """,
+            channel,
+            external_id,
+        )
+        return row["id"], row["first_source"]
 
     async def _close_active_conversation(
         self, conn: asyncpg.Connection, user_id: UUID
