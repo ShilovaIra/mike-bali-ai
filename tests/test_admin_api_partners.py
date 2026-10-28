@@ -75,7 +75,7 @@ async def test_created_partner_logo_path_and_active_flag_are_what_the_list_retur
 
 @requires_db
 async def test_logged_in_admin_receives_the_bytes_of_a_partner_logo(store):
-    logo_rel = "media/partners/esim-logo.jpeg"
+    logo_rel = "media/partners/esim-logo.png"
     async with authed_client(store) as client:
         created = await client.post(
             "/api/partners",
@@ -130,7 +130,7 @@ async def test_partner_logo_without_a_token_is_rejected(store):
                 "type": "esim",
                 "referral_url": "https://example.com/esim",
                 "blurb": "Связь",
-                "logo_path": "media/partners/esim-logo.jpeg",
+                "logo_path": "media/partners/esim-logo.png",
                 "is_active": True,
                 "sort_order": 1,
             },

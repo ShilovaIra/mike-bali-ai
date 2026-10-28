@@ -33,12 +33,12 @@ def test_empty_partners_returns_type_fallback_and_no_cards():
 
 
 def test_resolve_logo_path_finds_bundled_partner_logos():
-    esim = resolve_logo_path("media/partners/esim-logo.jpeg")
-    exchange = resolve_logo_path("media/partners/ex24pro_logo.jpeg")
+    esim = resolve_logo_path("media/partners/esim-logo.png")
+    exchange = resolve_logo_path("media/partners/ex24pro_logo.png")
     excursions = resolve_logo_path("media/partners/excursion_logo.jpeg")
-    visa = resolve_logo_path("media/partners/visa_service_logo.jpeg")
+    visa = resolve_logo_path("media/partners/visa_service_logo.png")
 
-    assert esim is not None and esim.name == "esim-logo.jpeg"
-    assert exchange is not None and exchange.name == "ex24pro_logo.jpeg"
+    assert esim is not None and esim.name == "esim-logo.png"
+    assert exchange is not None and exchange.name == "ex24pro_logo.png"
     assert excursions is not None and excursions.name == "excursion_logo.jpeg"
-    assert visa is not None and visa.name == "visa_service_logo.jpeg"
+    assert visa is not None and visa.name == "visa_service_logo.png"

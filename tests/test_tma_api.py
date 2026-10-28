@@ -77,7 +77,7 @@ async def test_partner_card_uses_the_type_chip_button_blurb_and_logo(store):
         type="money_exchange",
         referral_url="https://example.com/early",
         blurb="Обмен на Бали",
-        logo_path="media/partners/ex24pro_logo.jpeg",
+        logo_path="media/partners/ex24pro_logo.png",
         sort_order=1,
     )
 
@@ -96,7 +96,7 @@ async def test_partner_card_uses_the_type_chip_button_blurb_and_logo(store):
     assert card["logo_url"] == f"/api/tma/partners/{partner.id}/logo"
     assert logo.status_code == 200
     assert logo.headers["content-type"].startswith("image/")
-    assert logo.content == (ROOT / "media/partners/ex24pro_logo.jpeg").read_bytes()
+    assert logo.content == (ROOT / "media/partners/ex24pro_logo.png").read_bytes()
 
 
 @requires_db

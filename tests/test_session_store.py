@@ -115,7 +115,7 @@ async def test_schema_seeds_esim_partner(store):
     partner = partners[0]
     assert partner.referral_url == "https://t.me/Mike_Bali_eSIM_bot"
     assert partner.blurb in (None, "")
-    assert partner.logo_path == "media/partners/esim-logo.jpeg"
+    assert partner.logo_path == "media/partners/esim-logo.png"
 
 
 @requires_db
@@ -131,7 +131,7 @@ async def test_schema_seeds_money_exchange_partner(store):
         "Лицензированный обмен валюты. Бали, Вьетнам, ОАЭ, Китай, Таиланд. "
         "Переводы по всему миру."
     )
-    assert partner.logo_path == "media/partners/ex24pro_logo.jpeg"
+    assert partner.logo_path == "media/partners/ex24pro_logo.png"
 
 
 @requires_db
@@ -165,7 +165,7 @@ async def test_schema_seeds_visa_service_partner(store):
         "Откроем и продлим визу, поможем с визами в другие страны, компанией и KITAS. "
         "Апостиль, вилла, IMEI, карта и консьерж."
     )
-    assert partner.logo_path == "media/partners/visa_service_logo.jpeg"
+    assert partner.logo_path == "media/partners/visa_service_logo.png"
 
 
 @requires_db
