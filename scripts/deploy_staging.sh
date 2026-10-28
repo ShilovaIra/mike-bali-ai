@@ -32,11 +32,11 @@ fi
 
 if [[ "${SKIP_IMAGE_BUILD:-}" != "1" ]]; then
   echo "→ Building images"
-  docker compose build bot admin-web partner-web
+  docker compose --profile tma build bot admin-web partner-web tma-web
 fi
 
 echo "→ Starting containers"
-docker compose up -d --remove-orphans
+docker compose --profile tma up -d --remove-orphans
 
 echo "→ Waiting for bot"
 ready=0

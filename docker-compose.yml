@@ -86,5 +86,21 @@ services:
     ports:
       - "${PARTNER_WEB_PORT:-8081}:80"
 
+  # Started only with: docker compose --profile tma up
+  # Production deploy does not enable this profile.
+  tma-web:
+    profiles: ["tma"]
+    build:
+      context: ./tma
+      dockerfile: Dockerfile
+    image: mike-bali-tma-web:local
+    pull_policy: never
+    restart: unless-stopped
+    depends_on:
+      admin-api:
+        condition: service_healthy
+    ports:
+      - "${TMA_WEB_PORT:-8082}:80"
+
 volumes:
   postgres_data:
