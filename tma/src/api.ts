@@ -130,11 +130,15 @@ export async function openPartner(id: string): Promise<string> {
   return payload.url
 }
 
-export async function loadProfile(): Promise<{ firstName: string; lastName: string }> {
+export async function loadProfile(): Promise<{ firstName: string; lastName: string; photoUrl: string }> {
   const response = await fetch('/api/tma/me', { headers: authHeaders() })
   if (!response.ok) throw new Error('Не удалось загрузить профиль')
-  const payload: { first_name: string; last_name: string } = await response.json()
-  return { firstName: payload.first_name, lastName: payload.last_name }
+  const payload: { first_name: string; last_name: string; photo_url?: string } = await response.json()
+  return {
+    firstName: payload.first_name,
+    lastName: payload.last_name,
+    photoUrl: payload.photo_url ?? '',
+  }
 }
 
 export async function loadThread(): Promise<ThreadMessage[]> {

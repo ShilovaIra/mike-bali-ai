@@ -600,8 +600,34 @@ async def test_profile_returns_the_telegram_name(store, monkeypatch):
         first_only = await client.get("/api/tma/me")
 
     assert named.status_code == 200
-    assert named.json() == {"first_name": "Анна", "last_name": "Иванова"}
-    assert first_only.json() == {"first_name": "Борис", "last_name": ""}
+    assert named.json() == {"first_name": "Анна", "last_name": "Иванова", "photo_url": ""}
+    assert first_only.json() == {"first_name": "Борис", "last_name": "", "photo_url": ""}
+
+
+@requires_db
+async def test_profile_returns_the_telegram_photo(store, monkeypatch):
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", BOT_TOKEN)
+
+    from admin_api.app import create_app
+
+    app = create_app(store=store)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        client.headers["Authorization"] = "tma " + sign_init_data(
+            {
+                "id": 42,
+                "first_name": "Анна",
+                "last_name": "Иванова",
+                "photo_url": "https://t.me/i/userpic/320/anna.jpg",
+            }
+        )
+        pictured = await client.get("/api/tma/me")
+        client.headers["Authorization"] = "tma " + sign_init_data({"id": 7, "first_name": "Борис"})
+        plain = await client.get("/api/tma/me")
+
+    assert pictured.status_code == 200
+    assert pictured.json()["photo_url"] == "https://t.me/i/userpic/320/anna.jpg"
+    assert plain.json()["photo_url"] == ""
 
 
 @requires_db

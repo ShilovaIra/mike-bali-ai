@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { closedCopy } from './api'
 import { IconUser } from './icons'
 import { ThemeSwitch } from './ThemeSwitch'
 import { useTheme } from './theme'
 
-export function Profile({ signed, name }: { signed: boolean; name: string }) {
+export function Profile({ signed, name, photo }: { signed: boolean; name: string; photo: string }) {
   const { theme } = useTheme()
+  const [photoFailed, setPhotoFailed] = useState(false)
+  const showPhoto = photo.length > 0 && !photoFailed
 
   if (!signed) {
     return (
@@ -20,7 +23,11 @@ export function Profile({ signed, name }: { signed: boolean; name: string }) {
       <h1>Профиль</h1>
       <div className="user-identity">
         <span className="user-avatar" aria-hidden="true">
-          <IconUser active />
+          {showPhoto ? (
+            <img src={photo} alt="" onError={() => setPhotoFailed(true)} />
+          ) : (
+            <IconUser active />
+          )}
         </span>
         <p className="user-name">{name}</p>
       </div>

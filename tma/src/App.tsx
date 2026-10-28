@@ -23,6 +23,7 @@ export function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [replying, setReplying] = useState(false)
   const [profileName, setProfileName] = useState('')
+  const [profilePhoto, setProfilePhoto] = useState('')
   const catalog = [...partners, ...saved]
   const openPartner = openId ? catalog.find((partner) => partner.id === openId) : undefined
 
@@ -53,9 +54,13 @@ export function App() {
         if (cancelled) return
         const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ')
         setProfileName(name)
+        setProfilePhoto(profile.photoUrl)
       })
       .catch(() => {
-        if (!cancelled) setProfileName('')
+        if (!cancelled) {
+          setProfileName('')
+          setProfilePhoto('')
+        }
       })
     return () => {
       cancelled = true
@@ -156,7 +161,7 @@ export function App() {
               <Closed title="Избранное" />
             )
           ) : null}
-          {tab === 'profile' ? <Profile signed={signed} name={profileName} /> : null}
+          {tab === 'profile' ? <Profile signed={signed} name={profileName} photo={profilePhoto} /> : null}
         </main>
 
         <div className="dock">

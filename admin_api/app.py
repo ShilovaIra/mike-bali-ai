@@ -390,6 +390,7 @@ def create_app(
         return {
             "first_name": str(tourist.get("first_name") or ""),
             "last_name": str(tourist.get("last_name") or ""),
+            "photo_url": str(tourist.get("photo_url") or ""),
         }
 
     @app.get("/api/tma/messages")
