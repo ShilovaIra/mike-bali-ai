@@ -20,6 +20,14 @@ const stroke = {
   strokeLinejoin: 'round' as const,
 }
 
+export function IconForward() {
+  return (
+    <Svg>
+      <path d="M9 5.5 15.5 12 9 18.5" {...stroke} />
+    </Svg>
+  )
+}
+
 export function IconBack() {
   return (
     <Svg>

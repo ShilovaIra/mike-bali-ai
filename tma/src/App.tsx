@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { closedCopy, isSignedIn, listPartners, loadProfile, loadThread, sendMessage, type Partner } from './api'
+import { closeApp, closedCopy, isSignedIn, listPartners, loadProfile, loadThread, sendMessage, type Partner } from './api'
 import { Chat, greeting, type Message } from './Chat'
 import { Favorites } from './SavedScreen'
 import { useFavorites } from './favoriteStore'
@@ -97,27 +97,32 @@ export function App() {
 
   return (
     <div className="stage">
+      <div className="scene scene-day" aria-hidden="true" />
+      <div className="scene scene-dusk" aria-hidden="true" />
+      <div className="veil" aria-hidden="true" />
       <div className="app">
-        <header className="header">
-          <span className="icon-button is-quiet" aria-hidden="true">
-            <IconClose />
-          </span>
-          <div className="brand">
-            <img src="/mike.jpg" alt="" width={36} height={36} />
-            <p className="brand-name">Mike Bali AI</p>
+        <header className="topbar">
+          <div className="header">
+            <button type="button" className="icon-button" aria-label="Закрыть" onClick={closeApp}>
+              <IconClose />
+            </button>
+            <div className="brand">
+              <img src="/mike.jpg" alt="" width={36} height={36} />
+              <p className="brand-name">Mike Bali AI</p>
+            </div>
+            <ThemeSwitch />
           </div>
-          <ThemeSwitch />
         </header>
 
-        <main className={tab === 'chat' ? 'main main-chat' : 'main'}>
+        <main className={tab === 'chat' && signed ? 'main main-chat' : 'main'}>
           {tab === 'home' ? (
             partnersStatus === 'error' ? (
               <div className="stack">
-                <p>Не удалось загрузить рекомендации</p>
+                <p className="panel">Не удалось загрузить рекомендации</p>
               </div>
             ) : partnersStatus === 'loading' ? (
               <div className="stack">
-                <p>Загрузка</p>
+                <p className="panel">Загрузка</p>
               </div>
             ) : (
               <Home
@@ -154,6 +159,7 @@ export function App() {
           {tab === 'profile' ? <Profile signed={signed} name={profileName} /> : null}
         </main>
 
+        <div className="dock">
         <nav className="tabs" aria-label="Разделы">
           <TabButton id="home" label="Главная" current={tab} onSelect={selectTab}>
             <IconHome active={tab === 'home'} />
@@ -171,6 +177,7 @@ export function App() {
             <IconUser active={tab === 'profile'} />
           </TabButton>
         </nav>
+        </div>
         {open}
       </div>
     </div>
@@ -181,7 +188,7 @@ function Closed({ title }: { title: string }) {
   return (
     <div className="stack">
       <h1>{title}</h1>
-      <p>{closedCopy}</p>
+      <p className="panel">{closedCopy}</p>
     </div>
   )
 }

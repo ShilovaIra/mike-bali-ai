@@ -3,7 +3,6 @@ export type Partner = {
   name: string
   type: string
   blurb: string
-  href: string
   logo: string
   action: string
 }
@@ -12,7 +11,6 @@ type PartnerPayload = {
   id: string
   name: string
   blurb: string
-  referral_url: string
   type_label: string
   action: string
   logo_url: string
@@ -26,6 +24,7 @@ export type ThreadMessage = {
 
 type TelegramWebApp = {
   initData?: string
+  close?: () => void
 }
 
 declare global {
@@ -36,12 +35,39 @@ declare global {
 
 export const closedCopy = 'Откройте Майка в Telegram.'
 
+const VISITOR_KEY = 'mike-bali-tma-visitor'
+let rememberedVisitor = ''
+
+export function visitorId(): string {
+  if (rememberedVisitor) return rememberedVisitor
+  try {
+    const stored = localStorage.getItem(VISITOR_KEY)
+    if (stored) {
+      rememberedVisitor = stored
+      return stored
+    }
+  } catch {
+    /* private mode */
+  }
+  rememberedVisitor = crypto.randomUUID()
+  try {
+    localStorage.setItem(VISITOR_KEY, rememberedVisitor)
+  } catch {
+    /* private mode */
+  }
+  return rememberedVisitor
+}
+
 export function initData(): string {
   return window.Telegram?.WebApp?.initData ?? ''
 }
 
 export function isSignedIn(): boolean {
   return initData().length > 0
+}
+
+export function closeApp() {
+  window.Telegram?.WebApp?.close?.()
 }
 
 function authHeaders(): HeadersInit {
@@ -55,7 +81,6 @@ function asPartner(payload: PartnerPayload): Partner {
     name: payload.name,
     type: payload.type_label,
     blurb: payload.blurb,
-    href: payload.referral_url,
     logo: payload.logo_url,
     action: payload.action,
   }
@@ -92,9 +117,13 @@ export async function forgetFavorite(id: string): Promise<void> {
 }
 
 export async function openPartner(id: string): Promise<string> {
+  const headers: Record<string, string> = {}
+  const data = initData()
+  if (data) headers.Authorization = `tma ${data}`
+  else headers['X-Visitor-Id'] = visitorId()
   const response = await fetch(`/api/tma/partners/${id}/open`, {
     method: 'POST',
-    headers: authHeaders(),
+    headers,
   })
   if (!response.ok) throw new Error('Не удалось открыть партнёра')
   const payload: { url: string } = await response.json()

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { isSignedIn, openPartner, type Partner } from './api'
+import { openPartner, type Partner } from './api'
 import { IconClose } from './icons'
+import { PartnerLogo } from './PartnerLogo'
 import { SaveButton } from './SaveButton'
 
 export function PartnerSheet({
@@ -13,7 +14,7 @@ export function PartnerSheet({
   const ref = useRef<HTMLDialogElement>(null)
   const ignoreClose = useRef(false)
 
-  const [href, setHref] = useState(partner.href)
+  const [href, setHref] = useState('')
 
   useEffect(() => {
     const dialog = ref.current
@@ -26,19 +27,18 @@ export function PartnerSheet({
   }, [])
 
   useEffect(() => {
-    if (!isSignedIn()) return
     let cancelled = false
     openPartner(partner.id)
       .then((url) => {
         if (!cancelled) setHref(url)
       })
       .catch(() => {
-        if (!cancelled) setHref(partner.href)
+        if (!cancelled) setHref('')
       })
     return () => {
       cancelled = true
     }
-  }, [partner.id, partner.href])
+  }, [partner.id])
 
   return (
     <dialog
@@ -59,11 +59,20 @@ export function PartnerSheet({
           </button>
           <SaveButton id={partner.id} name={partner.name} />
         </div>
-        <img className="sheet-logo" src={partner.logo} alt="" width={96} height={96} />
+        <PartnerLogo src={partner.logo} />
         <p className="type-label">{partner.type}</p>
         <h2 id="sheet-title">{partner.name}</h2>
         <p className="sheet-blurb">{partner.blurb}</p>
-        <a className="button" href={href} target="_blank" rel="noreferrer">
+        <a
+          className="button"
+          href={href || undefined}
+          target={href ? '_blank' : undefined}
+          rel={href ? 'noreferrer' : undefined}
+          aria-disabled={href ? undefined : true}
+          onClick={(event) => {
+            if (!href) event.preventDefault()
+          }}
+        >
           {partner.action}
         </a>
       </div>

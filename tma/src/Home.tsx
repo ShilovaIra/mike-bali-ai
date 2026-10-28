@@ -1,6 +1,7 @@
-import { IconBack } from './icons'
+import { IconBack, IconForward } from './icons'
 import type { Partner } from './api'
 import { PartnerList } from './PartnerList'
+import { PartnerLogo } from './PartnerLogo'
 import { SaveButton } from './SaveButton'
 
 export function Home({
@@ -28,8 +29,9 @@ export function Home({
         </button>
         <h1>Рекомендации</h1>
         <PartnerList items={partners} onOpen={onOpen} />
-        <button type="button" className="button" onClick={onAsk}>
+        <button type="button" className="button button-ask" onClick={onAsk}>
           Спросите Майка о Бали
+          <IconForward />
         </button>
       </div>
     )
@@ -56,17 +58,18 @@ export function Home({
         <h2>Рекомендации для вас</h2>
         <button type="button" className="text-link" onClick={onShowAll}>
           Смотреть все
+          <IconForward />
         </button>
       </div>
 
       {homePartners.length === 0 ? (
-        <p className="empty-copy">Пока нет рекомендаций. Спросите Майка.</p>
+        <p className="empty-copy panel">Пока нет рекомендаций. Спросите Майка.</p>
       ) : (
         <div className="tiles">
           {homePartners.map((partner) => (
             <article key={partner.id} className="tile">
               <button type="button" className="tile-open" onClick={() => onOpen(partner.id)}>
-                <img src={partner.logo} alt="" width={120} height={80} />
+                <PartnerLogo src={partner.logo} />
                 <span className="tile-name">{partner.name}</span>
                 <span className="tile-type">{partner.type}</span>
               </button>
@@ -76,8 +79,9 @@ export function Home({
         </div>
       )}
 
-      <button type="button" className="button" onClick={onAsk}>
+      <button type="button" className="button button-ask" onClick={onAsk}>
         Спросите Майка о Бали
+        <IconForward />
       </button>
     </div>
   )

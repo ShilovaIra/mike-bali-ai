@@ -1,4 +1,4 @@
-import { IconMap } from './icons'
+import { IconForward, IconMap } from './icons'
 
 export function MapSoon({ onAsk }: { onAsk: () => void }) {
   return (
@@ -6,8 +6,9 @@ export function MapSoon({ onAsk }: { onAsk: () => void }) {
       <IconMap />
       <h1>Карта скоро</h1>
       <p>Места по-прежнему приходят ссылками в чате.</p>
-      <button type="button" className="button" onClick={onAsk}>
+      <button type="button" className="button button-ask" onClick={onAsk}>
         Спросите Майка о Бали
+        <IconForward />
       </button>
     </div>
   )

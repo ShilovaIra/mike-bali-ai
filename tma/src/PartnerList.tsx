@@ -1,4 +1,5 @@
 import type { Partner } from './api'
+import { PartnerLogo } from './PartnerLogo'
 import { SaveButton } from './SaveButton'
 
 export function PartnerList({
@@ -9,7 +10,7 @@ export function PartnerList({
   onOpen: (id: string) => void
 }) {
   if (items.length === 0) {
-    return <p className="empty-copy">Пока нет рекомендаций. Спросите Майка.</p>
+    return <p className="empty-copy panel">Пока нет рекомендаций. Спросите Майка.</p>
   }
 
   return (
@@ -17,7 +18,7 @@ export function PartnerList({
       {items.map((partner) => (
         <li key={partner.id} className="partner-row">
           <button type="button" className="row-open" onClick={() => onOpen(partner.id)}>
-            <img src={partner.logo} alt="" width={56} height={56} />
+            <PartnerLogo src={partner.logo} />
             <span className="row-copy">
               <span className="row-name">{partner.name}</span>
               <span className="row-type">{partner.type}</span>

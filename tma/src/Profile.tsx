@@ -10,7 +10,7 @@ export function Profile({ signed, name }: { signed: boolean; name: string }) {
     return (
       <div className="stack">
         <h1>Профиль</h1>
-        <p>{closedCopy}</p>
+        <p className="panel">{closedCopy}</p>
       </div>
     )
   }
@@ -24,7 +24,7 @@ export function Profile({ signed, name }: { signed: boolean; name: string }) {
         </span>
         <p className="user-name">{name}</p>
       </div>
-      <p>Майк отвечает про пляжи, еду, дорогу и жильё. Спросите в чате.</p>
+      <p className="panel">Майк отвечает про пляжи, еду, дорогу и жильё. Спросите в чате.</p>
       <div className="theme-row">
         <div>
           <p className="theme-label">Тема</p>

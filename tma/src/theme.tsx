@@ -21,7 +21,7 @@ function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme
   document.querySelector('meta[name="theme-color"]')?.setAttribute(
     'content',
-    theme === 'dark' ? '#141216' : '#e7eaec',
+    theme === 'dark' ? '#14110e' : '#d5e6e1',
   )
   try {
     localStorage.setItem(STORAGE_KEY, theme)
