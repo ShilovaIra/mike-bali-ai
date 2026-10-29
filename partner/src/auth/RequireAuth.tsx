@@ -1,4 +1,6 @@
-import { Link, Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { Wordmark } from '../brand/Wordmark'
+import { ThemeSwitch } from '../ThemeSwitch'
 import { authApi } from './authApi'
 
 export function RequireAuth() {
@@ -14,18 +16,15 @@ export function RequireAuth() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
-        <Link to="/" className="text-sm font-medium tracking-wide text-slate-700">
-          Mike Bali AI
-        </Link>
-        <button
-          type="button"
-          onClick={logout}
-          className="rounded border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50"
-        >
-          Выйти
-        </button>
+    <div className="shell">
+      <header className="topbar">
+        <Wordmark />
+        <div className="topbar-actions">
+          <ThemeSwitch />
+          <button type="button" onClick={logout} className="btn-secondary">
+            Выйти
+          </button>
+        </div>
       </header>
       <Outlet />
     </div>

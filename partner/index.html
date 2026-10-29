@@ -4,7 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#d5e6e1" />
     <title>Кабинет партнёра</title>
+    <script>
+      try {
+        var stored = localStorage.getItem('mike-bali-partner-theme')
+        var theme = stored === 'light' || stored === 'dark'
+          ? stored
+          : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        document.documentElement.dataset.theme = theme
+        var meta = document.querySelector('meta[name="theme-color"]')
+        if (meta) meta.setAttribute('content', theme === 'dark' ? '#14110e' : '#d5e6e1')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

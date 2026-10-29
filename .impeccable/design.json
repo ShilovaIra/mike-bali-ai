@@ -111,9 +111,9 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The one filled action: enter, save, navigate. Fresh green, one per row.",
+      "description": "The one filled action: enter, save, navigate. Ink fill, on-ink text. Light theme is a dark stone button. Dark theme flips it.",
       "html": "<button class=\"ds-btn-primary\" type=\"button\">Войти</button>",
-      "css": ".ds-btn-primary { background: #4b764b; color: #ffffff; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 12px 18px; border: none; border-radius: 8px; cursor: pointer; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-btn-primary:hover { background: #3a653b; } .ds-btn-primary:focus-visible { outline: 2px solid #4b764b; outline-offset: 2px; } .ds-btn-primary:disabled { background: #e7eaec; color: #44484c; cursor: not-allowed; } @media (prefers-reduced-motion: reduce) { .ds-btn-primary { transition: none; } }"
+      "css": ".ds-btn-primary { background: #2e241d; color: #f8f9f5; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; padding: 12px 18px; border: 1px solid transparent; border-radius: 8px; box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.7); cursor: pointer; } .ds-btn-primary:hover { background: #40362e; } .ds-btn-primary:focus-visible { outline: 2px solid #2e241d; outline-offset: 2px; } .ds-btn-primary:disabled { background: #f4f6f0; color: #494139; box-shadow: none; cursor: not-allowed; }"
     },
     {
       "name": "Fresh Green Button",
@@ -143,7 +143,7 @@
       "name": "Side Nav",
       "kind": "nav",
       "refersTo": "nav-link",
-      "description": "Stone paper rail. Active link is terrace wash and fresh green.",
+      "description": "Glass rail on the stage. The active link is an ink chip with on-ink text.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link ds-nav-link-active\" href=\"#stats\" aria-current=\"page\">Статистика</a><a class=\"ds-nav-link\" href=\"#partners\">Партнёры</a><a class=\"ds-nav-link\" href=\"#knowledge\">База знаний</a></nav>",
       "css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 208px; padding: 12px; background: #f3f5f6; border-right: 1px solid #6e7276; font-family: 'Segoe UI', system-ui, sans-serif; } .ds-nav-link { color: #44484c; font-size: 0.875rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; text-decoration: none; padding: 8px 12px; border-radius: 8px; transition: background 160ms cubic-bezier(0.25, 1, 0.5, 1), color 160ms cubic-bezier(0.25, 1, 0.5, 1); } .ds-nav-link:hover { background: #e7eaec; color: #222427; } .ds-nav-link:focus-visible { outline: 2px solid #4b764b; outline-offset: 2px; } .ds-nav-link-active { background: #e7eaec; color: #3a653b; } @media (prefers-reduced-motion: reduce) { .ds-nav-link { transition: none; } }"
     },
@@ -181,15 +181,16 @@
     }
   ],
   "narrative": {
-    "northStar": "The Guide at the Gate",
-    "overview": "Mike is the guide at the gate. The interface should feel like that meeting in daylight: dark volcanic stone, and one bright leaf. Density is a working cabinet, not a campaign page. Type does the hospitality. Color is the gate: temple stone for the name and the page, fresh green for the action.\n\nThe ground is shade on stone, not the shirt. A tourist reads this on a phone. An admin reads it at a desk. Both need a light field with real contrast. The page is neutral stone grey. It is never linen, cream, sand, or a green wash.\n\nThis system rejects the generic slate SaaS dashboard (blue-gray panels, a component kit with no stone and no leaf), the luxury Bali resort brochure (gold serif, infinity pool, barefoot-luxury copy), the travel-blog cream and sand template, the neon beach-club / nightlife promo, and the corporate real-estate CRM.",
+    "northStar": "Glass on the stage",
+    "overview": "Mike is still the guide at the gate. The interface is the gloss from the Telegram app: a tinted stage, frosted panes, a bright rim, and ink for the one filled action. Light theme is a pale leaf-green stage. Dark theme is a warm night.\n\nThe Telegram app puts a day photograph under the light theme and a dusk photograph under the dark theme. The admin and the partner cabinet do not. Their stage is the solid color, so a table stays readable. The CRM cabinet has not moved.\n\nThis system rejects the generic slate SaaS dashboard, the luxury Bali resort brochure, the travel-blog cream and sand template, the neon beach-club promo, and the corporate real-estate CRM.",
     "keyCharacteristics": [
       "One voice for the Telegram chat, the admin, and the partner cabinet",
-      "Neutral stone paper; the linen shirt stays in the portrait",
-      "Temple stone carries the name; fresh green is the one filled action",
-      "Flat surfaces, a 1px stone line, a shadow only under a dialog",
-      "One system sans for the wordmark, titles, and the rest of the cabinet",
-      "Short Russian labels that say what will happen"
+      "Two themes, remembered per app, with a sun/moon switch",
+      "Solid stage on the cabinets; the photograph stays on the Telegram app",
+      "Frosted panes with a 1px edge, an inset sheen, and a soft offset shadow",
+      "Ink is the filled action, the focus ring, and the active nav item",
+      "Chart green is a series color, never a button",
+      "Compact 8px controls and 12px panels; the theme switch is the only cabinet pill"
     ],
     "rules": [
       {
@@ -223,16 +224,16 @@
         "section": "typography"
       },
       {
-        "name": "The Flat Gate Rule",
-        "body": "Surfaces are flat. Depth is a 1px gate line (#6e7276). A shadow appears only under a dialog or a menu. If the shadow looks like a 2014 app, it is too dark and too tight: lighten it toward terrace ink at 14% and keep the blur at 32px.",
+        "name": "The Solid Stage Rule",
+        "body": "Cabinets use the stage color and nothing behind it. The day and dusk photographs belong to the Telegram app. Glass keeps its sheen and its shadow. The border stays visible on the flat stage.",
         "section": "elevation"
       }
     ],
     "dos": [
       "Do set the page to Warung Paper (#f3f5f6) and body text to Terrace Ink (#222427).",
       "Do use Temple Stone (#2b2e32) for the wordmark and page titles.",
-      "Do use Fresh Green (#4b764b) for the filled button, the active nav item, the focus ring, and the lead count.",
-      "Do keep panels flat, with a 1px Gate Line (#6e7276) and 24px padding.",
+      "Do use ink for the filled button, the active nav item, and the focus ring. Chart green stays a series color.",
+      "Do keep cabinet panels at 12px with glass, a visible edge, an inset sheen, and an offset shadow. Tables and inputs use the opaque glass.",
       "Do set Segoe UI on the wordmark, page titles, labels, tables, buttons, and body.",
       "Do write button labels as a verb plus an object, in Russian, sentence case: \"Сохранить партнёра\", \"Открыть карту\".",
       "Do color chart categories in this order: Fresh Green (#4b764b), Chart Blue (#397094), Chart Blossom (#8d5570), Fresh Green Hover (#3a653b), Chart Blue Deep (#215271). Other stays Gate Muted.",
@@ -243,7 +244,7 @@
       "Don't build the generic slate SaaS dashboard. No blue-gray slate palette, no gray-on-gray tables, no second display face on the title.",
       "Don't drift into a luxury Bali resort brochure: gold serif, infinity pool, barefoot-luxury copy. Thread gold is the 28px gate mark only.",
       "Don't use the travel-blog cream and sand template. Linen Shirt (#e7cfb5) is never a background.",
-      "Don't use a neon beach-club / nightlife promo: no cyan, magenta, or purple chart series, no glow, no glass.",
+      "Don't use a neon beach-club / nightlife promo: no cyan, magenta, or purple chart series.",
       "Don't look like a corporate real-estate CRM: no dense gray grids, no tiny uppercase headers, no side-stripe alerts.",
       "Don't put two filled buttons in one row, or use rust, gold, or a second green for text or fills.",
       "Don't carry meaning by color alone. Errors need a sentence. Charts need a legend. Selected chips need a state.",

@@ -1,23 +1,27 @@
 ---
 name: Mike Bali AI
-description: A daylight guide system for Mike, the admin, and the partner cabinet.
+description: Gloss cabinets for Mike, the admin, and the partner, in light and dark.
 colors:
-  chalk: "#ffffff"
-  temple-stone: "#2b2e32"
-  temple-stone-hover: "#44484c"
-  fresh-green: "#4b764b"
-  fresh-green-hover: "#3a653b"
-  linen-shirt: "#e7cfb5"
-  warung-paper: "#f3f5f6"
-  surface: "#fafbfc"
-  terrace-ink: "#222427"
-  gate-muted: "#44484c"
-  gate-line: "#6e7276"
-  terrace-wash: "#e7eaec"
+  stage-light: "#d5e6e1"
+  stage-dark: "#14110e"
+  ink-light: "#2e241d"
+  ink-dark: "#f4f2e9"
+  ink-hover-light: "#40362e"
+  on-ink-light: "#f8f9f5"
+  on-ink-dark: "#190f0a"
+  muted-light: "#494139"
+  muted-dark: "#cfcabc"
+  line-light: "#7c8a82"
+  line-dark: "#846e49"
+  glass-solid-light: "#f4f6f0"
   madder: "#8e2f2b"
+  madder-dark: "#d6857f"
+  chart-green: "#4b764b"
+  chart-green-deep: "#3a653b"
   chart-blue: "#397094"
   chart-blue-deep: "#215271"
   chart-blossom: "#8d5570"
+  linen-shirt: "#e7cfb5"
 typography:
   display:
     fontFamily: "Segoe UI, system-ui, sans-serif"
@@ -53,6 +57,7 @@ rounded:
   sm: "4px"
   md: "8px"
   lg: "12px"
+  pill: "999px"
 spacing:
   2xs: "4px"
   xs: "8px"
@@ -63,258 +68,195 @@ spacing:
   2xl: "64px"
 components:
   button-primary:
-    backgroundColor: "{colors.fresh-green}"
-    textColor: "{colors.chalk}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
-    padding: "12px 18px"
-  button-primary-hover:
-    backgroundColor: "{colors.fresh-green-hover}"
-    textColor: "{colors.chalk}"
+    backgroundColor: "{colors.ink-light}"
+    textColor: "{colors.on-ink-light}"
     typography: "{typography.label}"
     rounded: "{rounded.md}"
     padding: "12px 18px"
   button-secondary:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.terrace-ink}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
-  button-secondary-hover:
-    backgroundColor: "{colors.terrace-wash}"
-    textColor: "{colors.terrace-ink}"
+    backgroundColor: "{colors.glass-solid-light}"
+    textColor: "{colors.ink-light}"
     typography: "{typography.label}"
     rounded: "{rounded.md}"
     padding: "8px 12px"
   input:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.terrace-ink}"
+    backgroundColor: "{colors.glass-solid-light}"
+    textColor: "{colors.ink-light}"
     typography: "{typography.body}"
     rounded: "{rounded.md}"
     padding: "10px 12px"
-  input-focus:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.terrace-ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    padding: "10px 12px"
-  nav-link:
-    backgroundColor: "{colors.warung-paper}"
-    textColor: "{colors.gate-muted}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
-    padding: "8px 12px"
   nav-link-active:
-    backgroundColor: "{colors.terrace-wash}"
-    textColor: "{colors.fresh-green}"
+    backgroundColor: "{colors.glass-solid-light}"
+    textColor: "{colors.ink-light}"
     typography: "{typography.label}"
     rounded: "{rounded.md}"
     padding: "8px 12px"
-  chip:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.terrace-ink}"
-    typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    padding: "4px 8px"
-  chip-selected:
-    backgroundColor: "{colors.terrace-wash}"
-    textColor: "{colors.fresh-green}"
-    typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    padding: "4px 8px"
   panel:
-    backgroundColor: "{colors.surface}"
-    textColor: "{colors.terrace-ink}"
+    backgroundColor: "{colors.glass-solid-light}"
+    textColor: "{colors.ink-light}"
     typography: "{typography.body}"
     rounded: "{rounded.lg}"
     padding: "24px"
-  wordmark:
-    backgroundColor: "{colors.warung-paper}"
-    textColor: "{colors.temple-stone}"
-    padding: "0px"
+  theme-switch:
+    backgroundColor: "{colors.stage-light}"
+    textColor: "{colors.ink-light}"
+    rounded: "{rounded.pill}"
+    padding: "3px"
 ---
 
 # Design System: Mike Bali AI
 
 ## 1. Overview
 
-**Creative North Star: "The Guide at the Gate"**
+**Creative North Star: "Glass on the stage"**
 
-Mike is still the guide at the gate, already talking. The interface should feel like that meeting in daylight: dark volcanic stone, and one bright leaf. Density is a working cabinet, not a campaign page. Type does the hospitality. Color is the gate: temple stone for the name and the page, fresh green for the action.
+Mike is still the guide at the gate. The interface is the gloss already shipping in the Telegram app: a tinted stage, frosted panes, a bright rim, and ink for the one filled action. Light theme is morning on a pale leaf-green stage. Dark theme is a warm night, the same materials with the values flipped.
 
-The ground is shade on stone, not the shirt. A tourist reads this on a phone. An admin reads it at a desk. Both need a light field with real contrast. The page is neutral stone grey. It is never linen, cream, sand, or a green wash.
+The Telegram app puts a day photograph under the light theme and a dusk photograph under the dark theme, then a veil, then the glass. The admin and the partner cabinet do not. They are desk tools. Their stage is the solid color alone, so a table stays readable. The glass, the ink, the rim, and the sun/moon switch are the same.
 
-This system rejects the generic slate SaaS dashboard (blue-gray panels, a component kit with no stone and no leaf), the luxury Bali resort brochure (gold serif, infinity pool, barefoot-luxury copy), the travel-blog cream and sand template, the neon beach-club / nightlife promo, and the corporate real-estate CRM.
+The CRM cabinet has not moved. It still uses the older flat stone system. Do not treat it as part of this gloss.
+
+This system rejects the generic slate SaaS dashboard, the luxury Bali resort brochure, the travel-blog cream and sand template, the neon beach-club promo, and the corporate real-estate CRM.
 
 **Key Characteristics:**
 
 - One voice for the Telegram chat, the admin, and the partner cabinet
-- Neutral stone paper; the linen shirt stays in the portrait and never becomes a background
-- Temple stone carries the name; fresh green is the one filled action; no gold or rust fills
-- Flat surfaces, a 1px stone line, a shadow only under a dialog
-- One system sans for the wordmark, titles, and the rest of the cabinet
+- Two themes, chosen with a sun/moon switch and remembered on that app
+- Solid stage on the cabinets; the photograph stays on the Telegram app
+- Frosted panes with a 1px edge, an inset sheen, and a soft offset shadow
+- Ink is the filled action, the focus ring, and the active nav item
+- Chart green is a series color, never a button
+- Compact 8px controls and 12px panels in the cabinets; the theme switch is the only pill there
 - Short Russian labels that say what will happen
 
 ## 2. Colors
 
-The palette is temple stone plus one fresh green, corrected for WCAG 2.2 AA. Dark grey is the gate, the way a Bali candi reads in shade: charcoal, not blue, not sand. Fresh green is the leaf against that stone. It is the filled action, the selected nav item, the focus ring, and the lead count.
+Tokens live as `oklch` in the stylesheets. The hex values below are the light and dark steps those tokens resolve to. Body text, placeholders, and large text clear WCAG 2.2 AA on both the stage and the solid glass. Component edges clear 3:1, which is why the cabinet line is a stone color rather than a white hairline: on a flat stage a white rim disappears.
 
-### Primary
+### Stage
 
-- **Fresh Green** (#4b764b): the reference green. Filled buttons, the focus ring, the "on" state, and the lead count. White label text on this green is about 5.3:1. As text on the page it is about 4.8:1.
-- **Fresh Green Hover** (#3a653b): the same green pressed darker. White text is about 6.8:1. Selected nav labels use this step, because the reference green on the wash is about 4.4:1 and this step is about 5.6:1.
+- **Stage, light** (#d5e6e1): the page. Pale leaf green. Not linen, not cream, not a photograph.
+- **Stage, dark** (#14110e): the page at night. Warm black, not blue slate.
 
-### Stone
+### Ink
 
-- **Temple Stone** (#2b2e32): the wordmark and page titles. Dark grey, like dry andesite in shade. About 12.5:1 on the page.
-- **Temple Stone Hover** (#44484c): a lifted stone for quiet text that needs a hover, when that control is not the green action.
+- **Ink, light** (#2e241d): text, the wordmark, page titles, and the filled button. About 11.7:1 on the light stage.
+- **Ink, dark** (#f4f2e9): the same roles at night. About 16.8:1 on the dark stage.
+- **On ink**: the label on a filled button. Near-white on the light button, near-black on the dark button. Both pairings clear 11:1.
+- **Ink hover**: the filled button pressed one step lighter in light theme, one step dimmer in dark theme.
+- **Muted**: secondary text, placeholders, unselected nav. Warm, never neutral gray. About 7.7:1 on the light stage and 11.5:1 on the dark stage.
 
-### Neutral
+### Glass
 
-- **Warung Paper** (#f3f5f6): the page. A neutral stone grey, chroma near zero. Body backgrounds, the nav rail, the login field. Not green, not cream, not sand.
-- **Surface** (#fafbfc): panels, inputs, dialogs, and secondary buttons. One step lighter than the page, so a list sits on the paper without a drop shadow.
-- **Chalk** (#ffffff): text on fresh green and madder.
-- **Terrace Ink** (#222427): body text and sans headings. About 14:1 on warung paper.
-- **Gate Muted** (#44484c): secondary text, placeholders, and unselected nav. About 8.4:1 on warung paper.
-- **Gate Line** (#6e7276): 1px borders on panels, inputs, tables, and the nav rail. About 4.4:1 on warung paper, so the edge is visible.
-- **Terrace Wash** (#e7eaec): the active nav row, the selected chip, and the hover of a secondary button.
-- **Linen Shirt** (#e7cfb5): the portrait cloth. Reference only. See the rule below.
-- **Madder** (#8e2f2b): errors. White text on madder is about 7.4:1. The wash behind an error is #f4ecec, a small cool field, never the page.
-- **Chart Blue** (#397094): a chart category. Dusty blue, about 4.9:1 on the page. Not a button, not a link.
-- **Chart Blue Deep** (#215271): the darker step of the same blue, for the next slice.
-- **Chart Blossom** (#8d5570): a chart category. Dusty rose, about 5.2:1 on the page. Not an error color. Errors stay madder.
+- **Glass**: the rail and the top bar. Translucent, so the stage tints the chrome.
+- **Glass strong**: panels, stat cards, partner cards, the login card.
+- **Glass solid**: inputs, tables, dialogs, secondary buttons. Opaque enough that typed text and rows do not pick up the stage.
+- **Sheen**: a 1px inset highlight on the top edge of glass and of the filled button.
+- **Shadow**: an offset blur under glass. Light theme is a soft green-gray at 16%. Dark theme is a deeper warm shadow.
+- **Line, light** (#7c8a82): the 1px edge. About 3.3:1 on light glass.
+- **Line, dark**: a warm stone edge, about 4:1 on the night pane. It is an edge, not a gold fill.
+
+### Semantic and chart
+
+- **Madder** (#8e2f2b in light, #d6857f in dark): error text and the error border, on a small wash of the same hue. The sentence says what failed.
+- **Chart green** (#4b764b), **Chart blue** (#397094), **Chart blossom** (#8d5570), then the deeper green and blue. Series only. "Other" is #6e7276. Every slice has a text label.
+- **Linen shirt** (#e7cfb5): the portrait cloth in the Telegram app. Never a page, panel, input, or button.
 
 ### Named Rules
 
-**The Not-the-Shirt Rule.** Linen Shirt (#e7cfb5) is the portrait. It is never a page, panel, input, or button fill. Sand, cream, and beige are the same mistake. A green-tinted page is the old palette. The page stays Warung Paper.
+**The Solid Stage Rule.** Cabinets use the stage color and nothing behind it. The day and dusk photographs belong to the Telegram app.
 
-**The One Leaf Rule.** Fresh green is the only filled action. It marks the current section and the lead count. The wordmark and the page stay stone. Two filled buttons in one row are prohibited. Charts may also use Chart Blue and Chart Blossom, because a category needs its own hue. Those two colors do not appear on buttons, links, or the page.
+**The Ink Action Rule.** The filled button, the focus ring, and the active nav item are ink. Chart green does not appear on a control.
 
-**The No Gold Rule.** No gold type, no gold buttons, no gold rules, no rust fills, no gold page.
+**The Readable Edge Rule.** Glass keeps its sheen and its shadow. The border is dark enough to see on the flat stage. Blur is removed when `prefers-reduced-transparency: reduce` is set, and the pane becomes glass solid.
 
 ## 3. Typography
 
-**Face:** Segoe UI, then system-ui, then sans-serif. One family for the wordmark, titles, labels, tables, and body.
-
-**Character:** The cabinet uses the system sans it had before the display pairing. Weight does the hierarchy. No downloaded serif, no second grotesque, no optical-size axis.
+**Face:** Segoe UI, then system-ui, then sans-serif. One family for the wordmark, titles, labels, tables, and body. The face must cover Cyrillic.
 
 ### Hierarchy
 
 - **Wordmark** (600, 1.25rem, line-height 1.1, tracking -0.02em): MIKE, then BALI GUIDE under it at 0.75rem, weight 600, tracking 0.08em.
-- **Headline** (600, 1.5rem, line-height 1.25, tracking -0.015em): the one title on a screen, such as "Вход" or "Статистика". `text-wrap: balance`.
+- **Headline** (600, 1.5rem, line-height 1.25, tracking -0.015em): the one title on a screen. `text-wrap: balance`.
 - **Title** (600, 1.125rem, line-height 1.35, tracking -0.01em): panel titles and dialog titles.
-- **Body** (400, 1rem, line-height 1.5): answers, table cells, help text. Measure stays within 65 to 75 characters. `text-wrap: pretty` on paragraphs.
-- **Label** (600, 0.875rem, line-height 1.3, tracking 0.01em): buttons, nav, field labels, chips. Sentence case.
+- **Body** (400, 1rem, line-height 1.5): table cells and help. `text-wrap: pretty` on paragraphs.
+- **Label** (600, 0.875rem, line-height 1.3, tracking 0.01em): buttons, nav, field labels. Sentence case.
 
 ### Named Rules
 
-**The One Face Rule.** Segoe UI carries the wordmark, the page title, and the UI. A display serif on the name is out.
+**The One Face Rule.** Segoe UI carries the wordmark, the page title, and the UI.
 
-**The Logo Lockup Rule.** The only all-caps setting is the wordmark: MIKE, then BALI GUIDE. Section titles, buttons, and nav are sentence case. No tracked uppercase eyebrow above a section.
+**The Logo Lockup Rule.** The only all-caps setting is the wordmark: MIKE, then BALI GUIDE. No tracked uppercase eyebrow above a section.
 
-**The Straight Stitch Rule.** A high-contrast fashion serif, a script, or a gold headline is the luxury brochure, and it is out.
+## 4. Elevation and theme
 
-## 4. Elevation
+Depth is the glass: translucent fill, 1px line, inset sheen, and a shadow with offset and blur (`0 10px 28px` on panes, `0 16px 40px` on dialogs). Hover does not add a second shadow.
 
-Depth is tonal. The page is warung paper. Panels and inputs are surface, separated by a 1px gate line. Nothing lifts because it is a card. The portrait's gate is a stone edge in daylight, so the UI edge is a line, not a glow.
+The theme switch is a 76×36 pill, sun then moon, `aria-pressed` on the chosen side. It sits in the cabinet top bar beside «Выйти», and at the top of the login card. Each app stores its own choice (`mike-bali-admin-theme`, `mike-bali-partner-theme`, `mike-bali-tma-theme`). The first visit follows the system.
 
-Dialogs are the exception. A dialog is a surface panel with a short ink-tinted shadow, enough to say it sits over the page. Menus use the same shadow. Hover does not add a shadow.
+Motion is a state change of background, border, and color, about 160–180ms, ease-out. No entrance choreography. Under `prefers-reduced-motion: reduce`, those transitions are removed.
 
-Motion is a state change: background, border, and color in 160ms with cubic-bezier(0.25, 1, 0.5, 1). No entrance choreography, no bounce. Under `prefers-reduced-motion: reduce`, those transitions are removed.
+### Focus
 
-### Shadow Vocabulary
-
-- **Dialog** (`box-shadow: 0 12px 32px rgb(34 36 39 / 0.14)`): modal forms and menus only. The tint is terrace ink, so the lift stays stone grey.
-- **Focus** (`outline: 2px solid #4b764b; outline-offset: 2px`): every interactive control. The ring is fresh green on the page, visible without a glow.
-
-### Named Rules
-
-**The Flat Gate Rule.** Surfaces are flat. Depth is a 1px gate line (#6e7276). A shadow appears only under a dialog or a menu. If the shadow looks like a 2014 app, it is too dark and too tight: lighten it toward terrace ink at 14% and keep the blur at 32px.
+`outline: 2px solid` ink, offset 2px. The ring is the same ink as the text, in both themes.
 
 ## 5. Components
 
-Controls are compact enough for a cabinet and large enough for a phone outdoors. Corners are lightly cut (8px on controls, 12px on panels, 4px on chips). Pills, full-bleed gradients, and side stripes are out.
+Cabinet corners stay compact: 8px on controls, 12px on panels, 4px on chart swatches. The theme switch is the only pill. The Telegram app may keep its own pill buttons; do not import those radii into a table.
 
 ### Buttons
 
-Plain and pressed, like a shirt that has been worn in. One filled action per view.
+- **Primary:** ink fill, on-ink text, label type, padding 12px 18px, inset sheen. Hover uses ink hover. Disabled is glass solid with muted text, no opacity fade.
+- **Secondary:** glass solid, ink text, 1px line, padding 8px 12px. Hover uses the hover wash. «Выйти» and cancel.
+- **Text:** ink, underlined. Danger text is madder.
 
-- **Shape:** lightly cut corners (8px).
-- **Primary:** Fresh green fill, chalk text, label type, padding 12px 18px. Hover shifts to Fresh Green Hover. This is the one filled action: enter, save, and the control that contacts a person or opens a place.
-- **Secondary:** Surface fill, terrace ink text, 1px gate line, padding 8px 12px. Hover fills with terrace wash. Use for "Выйти" and for cancel.
-- **Focus:** 2px fresh green outline, 2px offset.
-- **Disabled:** terrace wash fill, gate muted text, gate line border. No opacity fade. The label still clears 4.5:1.
+### Panels
 
-### Chips
+A panel holds one job: a form, a table, a stat with its legend. 12px radius, glass strong, 1px line, sheen, shadow. Tables and dialogs use glass solid. Dialogs sit on a scrim. No colored side stripe.
 
-Partner types and filters. A chip is a choice, not a decoration.
+### Inputs
 
-- **Style:** surface fill, terrace ink text, 1px gate line, 4px radius, padding 4px 8px, label type.
-- **Selected:** terrace wash fill, fresh green hover text, 1px fresh green border.
-- **State:** the selected chip is also exposed to assistive tech with `aria-pressed` or a real radio. Color is not the only signal.
-
-### Cards / Containers
-
-Panels, not card grids. A panel holds one job: a form, a table, a stat with its legend.
-
-- **Corner style:** 12px.
-- **Background:** surface on warung paper.
-- **Shadow strategy:** none at rest. Dialogs use the dialog shadow from Elevation.
-- **Border:** 1px gate line on all sides. No colored side stripe.
-- **Internal padding:** 24px. Inside a dialog, the title is a title, then 16px, then the fields.
-
-### Inputs / Fields
-
-- **Style:** surface fill, 1px gate line, 8px radius, padding 10px 12px, body type, terrace ink text. The label sits above the field in label type, sentence case, 4px gap.
-- **Placeholder:** gate muted (#44484c). Same contrast bar as body text.
-- **Focus:** border becomes 1px fresh green, plus the 2px focus outline. No glow.
-- **Error:** 1px madder border, and a madder message under the field in body type. The message says what to fix. The border is not the only signal.
-- **Disabled:** terrace wash fill, gate muted text.
+Glass solid, 1px line, 8px radius, padding 10px 12px, inset sheen. The label sits above the field. Placeholder is muted. Focus turns the border to ink and draws the focus ring. Errors use a madder border and a madder sentence.
 
 ### Navigation
 
-A left rail, 208px, warung paper, 1px gate line on the right. The wordmark sits at the top of the rail, in temple stone. Links are label type, sentence case, gate muted, with 8px 12px padding and 8px radius. Hover uses terrace wash. The active link is terrace wash with the darker fresh green, so the label stays readable on the wash.
+Admin: a left rail, 13rem, glass, 1px line on the right. The wordmark sits at the top in ink. Links are label type, muted, 8px radius. Hover uses the hover wash. The active link is an ink chip with on-ink text, the same pairing as the filled button, so the section stays obvious on a light rail and on a dark one.
 
-Below 960px the rail becomes a horizontal bar under the wordmark. Links wrap. The active link stays the darker fresh green on wash, so the section is obvious without a hamburger mystery.
+Below 960px the rail becomes a horizontal bar and the links wrap.
 
-The header on the cabinet only holds the secondary "Выйти" button, aligned to the end. It does not repeat the page title.
+The top bar holds the theme switch and «Выйти». It does not repeat the page title.
+
+Partner: a top bar only. The wordmark is on the start side. The switch and «Выйти» are on the end side. The page is statistics.
 
 ### Charts
 
-Stats are a donut plus a legend. Series order is fixed: Fresh Green, Chart Blue, Chart Blossom, Fresh Green Hover, Chart Blue Deep. "Other" uses Gate Muted. Color is never the only label.
-
-- **Shape:** the ring is a stroke, not a gradient. Slice gaps are 1px of surface.
-- **Legend:** every slice has a text label and a number beside a 10px swatch. The swatch is `aria-hidden`. Color is never the only label.
-- **Empty:** one sentence in body type, gate muted: "Пока нет данных". No illustration.
+A donut plus a legend. Series order: chart green, chart blue, chart blossom, deep green, deep blue. Other is #6e7276. Slice gaps are 1px of glass solid. Every slice has a text label and a number. Empty copy is «Пока нет данных».
 
 ### Wordmark
 
-The signature. A two-prong candi, then the lockup, in temple stone.
-
-- **Mark:** two split gate prongs, 28px wide, current color. It appears once, at the top of the nav or on the login screen. It is not a repeating pattern, a background, or a bullet.
-- **Name:** MIKE in Segoe UI, about 1.25rem, weight 600, tracking -0.02em.
-- **Role:** BALI GUIDE in the same face, 0.75rem, weight 600, tracking 0.08em, under the name. This is the logo, not a section eyebrow.
+Two split gate prongs, then MIKE / BALI GUIDE, in ink. Once in the rail or the partner bar, and on the login card. Not a pattern and not a bullet.
 
 ## 6. Do's and Don'ts
 
 ### Do:
 
-- **Do** set the page to Warung Paper (#f3f5f6) and body text to Terrace Ink (#222427). Never linen, cream, sand, or a green page wash.
-- **Do** use Temple Stone (#2b2e32) for the wordmark and page titles.
-- **Do** use Fresh Green (#4b764b) for the filled button, the active nav item, the focus ring, and the lead count.
-- **Do** keep panels flat, with a 1px Gate Line (#6e7276) and 24px padding.
-- **Do** set Segoe UI on the wordmark, page titles, labels, tables, buttons, and body.
-- **Do** write button labels as a verb plus an object, in Russian, sentence case: "Сохранить партнёра", "Открыть карту".
+- **Do** set the cabinet page to the stage color for the active theme.
+- **Do** use ink for the filled button, the focus ring, the wordmark, and the active nav item.
+- **Do** keep tables and inputs on glass solid.
+- **Do** keep cabinet controls at 8px and panels at 12px.
+- **Do** remember the theme per app, and follow the system until a person chooses.
+- **Do** write button labels as a verb plus an object, in Russian, sentence case.
 - **Do** pair every chart color with a text legend.
-- **Do** remove color and shadow transitions when `prefers-reduced-motion: reduce` is set.
+- **Do** drop blur under `prefers-reduced-transparency: reduce`, and drop color transitions under `prefers-reduced-motion: reduce`.
 
 ### Don't:
 
-- **Don't** build the generic slate SaaS dashboard. No blue-gray slate palette, no gray-on-gray tables, no second display face on the title.
-- **Don't** drift into a luxury Bali resort brochure: gold serif, infinity pool, barefoot-luxury copy. No gold fill anywhere.
-- **Don't** use the travel-blog cream and sand template. Linen Shirt (#e7cfb5) is never a background.
-- **Don't** use a neon beach-club / nightlife promo: no cyan, magenta, or purple chart series, no glow, no glass.
-- **Don't** look like a corporate real-estate CRM: no dense gray grids, no tiny uppercase headers, no side-stripe alerts.
-- **Don't** put two filled buttons in one row, or use rust, gold, or a second green for text or fills.
-- **Don't** carry meaning by color alone. Errors need a sentence. Charts need a legend. Selected chips need a state.
+- **Don't** put the day or dusk photograph behind the admin or the partner cabinet.
+- **Don't** build the generic slate SaaS dashboard.
+- **Don't** use linen, cream, or sand as a background. Linen stays in the portrait.
+- **Don't** use neon chart series: no cyan, magenta, or purple.
+- **Don't** use chart green as a button, a link, or the focus ring.
+- **Don't** make cabinet buttons into pills. The theme switch is the exception.
+- **Don't** carry meaning by color alone. Errors need a sentence. Charts need a legend.
 - **Don't** animate layout, bounce, or reveal content by hiding it until a class is added.
+- **Don't** restyle the CRM cabinet as part of this system until that cabinet is deliberately moved.

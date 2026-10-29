@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { Wordmark } from '../brand/Wordmark'
+import { ThemeSwitch } from '../ThemeSwitch'
 import { apiFetch, authApi, SESSION_EVENT } from './authApi'
 
 const links = [
@@ -48,6 +49,7 @@ export function RequireAuth() {
       </aside>
       <div className="workspace">
         <header className="topbar">
+          <ThemeSwitch />
           <button type="button" onClick={logout} className="btn-secondary">
             Выйти
           </button>
