@@ -221,9 +221,9 @@ ON CONFLICT (id) DO UPDATE SET
     type = EXCLUDED.type,
     referral_url = EXCLUDED.referral_url,
     blurb = EXCLUDED.blurb,
-    logo_path = EXCLUDED.logo_path,
     is_active = EXCLUDED.is_active,
     sort_order = EXCLUDED.sort_order;
+-- logo_path stays as stored. A later boot must not put a Spaces key back to media/.
 
 CREATE TABLE IF NOT EXISTS leads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -169,6 +169,18 @@ async def test_schema_seeds_visa_service_partner(store):
 
 
 @requires_db
+async def test_schema_reapply_keeps_a_storage_logo(store):
+    partner = (await store.list_active_partners("visa_service"))[0]
+    key = f"partners/{partner.id}/logo-abc.png"
+
+    await store.set_partner_logo(partner.id, key)
+    await _reapply_schema(store)
+
+    again = (await store.list_active_partners("visa_service"))[0]
+    assert again.logo_path == key
+
+
+@requires_db
 async def test_create_lead_uses_conversation_source_when_set(store):
     await store.start_conversation("telegram", "400", source="facebook")
     lead = await store.create_lead("telegram", "400", snapshot={"name": "Anna"})

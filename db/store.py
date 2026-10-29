@@ -460,13 +460,16 @@ class SessionStore:
                     SELECT id, logo_path FROM partners WHERE id = $1 FOR UPDATE
                 ),
                 updated AS (
-                    UPDATE partners SET logo_path = $2
-                    WHERE id = $1
-                    RETURNING *
+                    UPDATE partners
+                    SET logo_path = $2
+                    FROM old
+                    WHERE partners.id = old.id
+                    RETURNING partners.id, partners.name, partners.type,
+                        partners.referral_url, partners.blurb, partners.logo_path,
+                        partners.is_active, partners.sort_order,
+                        old.logo_path AS previous_logo_path
                 )
-                SELECT updated.*, old.logo_path AS previous_logo_path
-                FROM updated
-                JOIN old ON old.id = updated.id
+                SELECT * FROM updated
                 """,
                 partner_id,
                 logo_path,
