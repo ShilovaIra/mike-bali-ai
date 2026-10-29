@@ -422,6 +422,14 @@ p {
   min-height: 28px;
 }
 
+[data-theme='light'] .section-head h2 {
+  color: oklch(0.16 0.02 60);
+}
+
+[data-theme='light'] .section-head .text-link {
+  color: oklch(0.26 0.02 60);
+}
+
 .text-link,
 .back-link {
   display: inline-flex;
