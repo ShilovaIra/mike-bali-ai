@@ -80,7 +80,16 @@ export function Chat({
             <MessageText text={message.text} />
           </p>
         ))}
-        {replying ? <p className="bubble-mike is-typing">Майк печатает</p> : null}
+        {replying ? (
+          <p className="bubble-mike is-typing">
+            <span className="dots" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            Майк печатает
+          </p>
+        ) : null}
       </div>
       <form className="composer" onSubmit={submit}>
         <label className="sr-only" htmlFor={inputId}>

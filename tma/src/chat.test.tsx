@@ -63,6 +63,19 @@ test('an address in your bubble is a link and the sentence period stays outside 
   expect(link.closest('p')?.textContent).toBe(`Вот ${mapUrl}.`)
 })
 
+test('while Mike is replying the status bubble shows three running dots', () => {
+  const { container } = render(
+    <Chat messages={[{ id: '1', from: 'user', text: 'Пляж' }]} replying onSend={() => {}} />,
+  )
+
+  const bubble = container.querySelector('p.is-typing')
+  const dots = bubble?.querySelector('.dots')
+  expect(bubble?.textContent).toBe('Майк печатает')
+  expect(dots?.getAttribute('aria-hidden')).toBe('true')
+  expect(dots?.querySelectorAll('span')).toHaveLength(3)
+  expect(container.querySelector('.sr-only')?.textContent).toBe('Майк печатает')
+})
+
 test('in a browser a link opens in a new tab', async () => {
   const user = userEvent.setup()
   render(
