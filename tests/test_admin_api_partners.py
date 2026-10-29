@@ -33,25 +33,19 @@ async def authed_client(store):
 
 
 @requires_db
-async def test_created_partner_logo_path_and_active_flag_are_what_the_list_returns(store):
+async def test_saving_a_partner_keeps_an_existing_logo(store):
+    partner = await store.create_partner(
+        name="Spa Bali",
+        type="beauty_service",
+        referral_url="https://example.com/spa",
+        blurb="Массаж",
+        logo_path="media/partners/esim-logo.png",
+        is_active=True,
+        sort_order=3,
+    )
     async with authed_client(store) as client:
-        created = await client.post(
-            "/api/partners",
-            json={
-                "name": "Spa Bali",
-                "type": "beauty_service",
-                "referral_url": "https://example.com/spa",
-                "blurb": "Массаж",
-                "logo_path": "media/partners/spa.jpeg",
-                "is_active": True,
-                "sort_order": 3,
-            },
-        )
-        assert created.status_code == 201
-        partner_id = created.json()["id"]
-
         updated = await client.patch(
-            f"/api/partners/{partner_id}",
+            f"/api/partners/{partner.id}",
             json={
                 "name": "Spa Bali",
                 "type": "beauty_service",
@@ -59,40 +53,33 @@ async def test_created_partner_logo_path_and_active_flag_are_what_the_list_retur
                 "blurb": "Массаж",
                 "logo_path": "media/partners/spa-new.jpeg",
                 "is_active": False,
-                "sort_order": 3,
+                "sort_order": 4,
             },
         )
-        assert updated.status_code == 200
-
         listed = await client.get("/api/partners")
 
-    assert listed.status_code == 200
-    row = next(item for item in listed.json() if item["id"] == partner_id)
-    assert row["logo_path"] == "media/partners/spa-new.jpeg"
+    assert updated.status_code == 200
+    assert updated.json()["logo_path"] == "media/partners/esim-logo.png"
+    assert updated.json()["logo_url"] == ""
+    row = next(item for item in listed.json() if item["id"] == str(partner.id))
+    assert row["logo_path"] == "media/partners/esim-logo.png"
     assert row["is_active"] is False
-    assert "logo_url" not in row
 
 
 @requires_db
-async def test_logged_in_admin_receives_the_bytes_of_a_partner_logo(store):
+async def test_logged_in_admin_receives_the_bytes_of_a_bundled_partner_logo(store):
     logo_rel = "media/partners/esim-logo.png"
+    partner = await store.create_partner(
+        name="eSIM",
+        type="esim",
+        referral_url="https://example.com/esim",
+        blurb="Связь",
+        logo_path=logo_rel,
+        is_active=True,
+        sort_order=1,
+    )
     async with authed_client(store) as client:
-        created = await client.post(
-            "/api/partners",
-            json={
-                "name": "eSIM",
-                "type": "esim",
-                "referral_url": "https://example.com/esim",
-                "blurb": "Связь",
-                "logo_path": logo_rel,
-                "is_active": True,
-                "sort_order": 1,
-            },
-        )
-        assert created.status_code == 201
-        partner_id = created.json()["id"]
-
-        logo = await client.get(f"/api/partners/{partner_id}/logo")
+        logo = await client.get(f"/api/partners/{partner.id}/logo")
 
     assert logo.status_code == 200
     assert logo.headers["content-type"].startswith("image/")
@@ -103,40 +90,32 @@ async def test_logged_in_admin_receives_the_bytes_of_a_partner_logo(store):
 async def test_partner_logo_is_not_served_when_missing_or_outside_media_partners(store):
     async with authed_client(store) as client:
         for logo_path in ("", "media/partners/missing-logo.jpeg", "media/partners/../../pytest.ini"):
-            created = await client.post(
-                "/api/partners",
-                json={
-                    "name": "Spa Bali",
-                    "type": "beauty_service",
-                    "referral_url": "https://example.com/spa",
-                    "blurb": "Массаж",
-                    "logo_path": logo_path,
-                    "is_active": True,
-                    "sort_order": 2,
-                },
+            partner = await store.create_partner(
+                name="Spa Bali",
+                type="beauty_service",
+                referral_url="https://example.com/spa",
+                blurb="Массаж",
+                logo_path=logo_path,
+                is_active=True,
+                sort_order=2,
             )
-            assert created.status_code == 201
-            logo = await client.get(f"/api/partners/{created.json()['id']}/logo")
+            logo = await client.get(f"/api/partners/{partner.id}/logo")
             assert logo.status_code == 404
 
 
 @requires_db
 async def test_partner_logo_without_a_token_is_rejected(store):
+    partner = await store.create_partner(
+        name="eSIM",
+        type="esim",
+        referral_url="https://example.com/esim",
+        blurb="Связь",
+        logo_path="media/partners/esim-logo.png",
+        is_active=True,
+        sort_order=1,
+    )
     async with authed_client(store) as client:
-        created = await client.post(
-            "/api/partners",
-            json={
-                "name": "eSIM",
-                "type": "esim",
-                "referral_url": "https://example.com/esim",
-                "blurb": "Связь",
-                "logo_path": "media/partners/esim-logo.png",
-                "is_active": True,
-                "sort_order": 1,
-            },
-        )
-        assert created.status_code == 201
         client.headers.pop("Authorization", None)
-        logo = await client.get(f"/api/partners/{created.json()['id']}/logo")
+        logo = await client.get(f"/api/partners/{partner.id}/logo")
 
     assert logo.status_code == 401

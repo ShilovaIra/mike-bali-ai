@@ -73,7 +73,7 @@ export function PartnersPage() {
                 >
                   <PenIcon />
                 </button>
-                <PartnerLogo partnerId={partner.id} />
+                <PartnerLogo partner={partner} />
                 <h2 className="partner-name">{partner.name}</h2>
                 <dl className="partner-meta">
                   <div>
@@ -132,6 +132,9 @@ export function PartnersPage() {
           partnerId={partnerModal.partnerId}
           types={types}
           onClose={() => setPartnerModal(null)}
+          onChanged={() => {
+            reload().catch((err: Error) => setError(err.message))
+          }}
           onSaved={async () => {
             setPartnerModal(null)
             await reload()
@@ -153,13 +156,17 @@ export function PartnersPage() {
   )
 }
 
-function PartnerLogo({ partnerId }: { partnerId: string }) {
-  const [src, setSrc] = useState<string | null>(null)
+function PartnerLogo({ partner }: { partner: Partner }) {
+  const [src, setSrc] = useState<string | null>(partner.logo_url || null)
 
   useEffect(() => {
+    if (partner.logo_url) {
+      setSrc(partner.logo_url)
+      return
+    }
     let cancelled = false
     let objectUrl = ''
-    apiFetch(`/api/partners/${encodeURIComponent(partnerId)}/logo`)
+    apiFetch(`/api/partners/${encodeURIComponent(partner.id)}/logo`)
       .then((response) => (response.ok ? response.blob() : null))
       .then((blob) => {
         if (!blob || cancelled) return
@@ -173,7 +180,7 @@ function PartnerLogo({ partnerId }: { partnerId: string }) {
       cancelled = true
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [partnerId])
+  }, [partner.id, partner.logo_url])
 
   return (
     <span className="partner-logo-slot">

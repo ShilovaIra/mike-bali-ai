@@ -421,7 +421,6 @@ class SessionStore:
         type: str,
         referral_url: str,
         blurb: str = "",
-        logo_path: str = "",
         is_active: bool = True,
         sort_order: int = 0,
     ) -> Partner:
@@ -433,9 +432,8 @@ class SessionStore:
                     type = $3,
                     referral_url = $4,
                     blurb = $5,
-                    logo_path = $6,
-                    is_active = $7,
-                    sort_order = $8
+                    is_active = $6,
+                    sort_order = $7
                 WHERE id = $1
                 RETURNING *
                 """,
@@ -444,13 +442,38 @@ class SessionStore:
                 type,
                 referral_url,
                 blurb or None,
-                logo_path or None,
                 is_active,
                 sort_order,
             )
         if row is None:
             raise KeyError(partner_id)
         return _partner_from_row(row)
+
+    async def set_partner_logo(
+        self, partner_id: UUID, logo_path: str | None
+    ) -> tuple[str | None, Partner]:
+        """Replace a partner's logo; returns (previous logo_path, updated partner)."""
+        async with self._pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                WITH old AS (
+                    SELECT id, logo_path FROM partners WHERE id = $1 FOR UPDATE
+                ),
+                updated AS (
+                    UPDATE partners SET logo_path = $2
+                    WHERE id = $1
+                    RETURNING *
+                )
+                SELECT updated.*, old.logo_path AS previous_logo_path
+                FROM updated
+                JOIN old ON old.id = updated.id
+                """,
+                partner_id,
+                logo_path,
+            )
+        if row is None:
+            raise KeyError(partner_id)
+        return row["previous_logo_path"], _partner_from_row(row)
 
     async def add_knowledge_base_partner(self, partner_id: UUID) -> KnowledgeBaseEntry:
         async with self._pool.acquire() as conn:

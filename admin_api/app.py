@@ -12,6 +12,8 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from admin_api.deps import require_admin
+from admin_api.partner_logos import router as partner_logos_router
+from admin_api.payloads import partner_payload
 from admin_api.tokens import create_access_token
 from admin_api.webapp import telegram_user
 from db.passwords import verify_password
@@ -26,9 +28,11 @@ from partners import (
     Partner,
     PartnerType,
     build_partner_button_text,
+    is_bundled_logo,
     partner_type_chip,
     resolve_logo_path,
 )
+from storage import AssetStorage
 from stats_report import collapse_user_sources, labeled_topic_rows
 from tourist_answers import answer_with_partner_list, choose_partner_type as default_choose_partner_type
 from tourist_answers import write_tourist_answer
@@ -83,7 +87,6 @@ class PartnerIn(BaseModel):
     type: str
     referral_url: str
     blurb: str = ""
-    logo_path: str = ""
     is_active: bool = True
     sort_order: int = 0
 
@@ -108,20 +111,11 @@ def _knowledge_base_payload(entry: KnowledgeBaseEntry) -> dict:
     }
 
 
-def _partner_payload(partner: Partner) -> dict:
-    return {
-        "id": str(partner.id),
-        "name": partner.name,
-        "type": partner.type,
-        "referral_url": partner.referral_url,
-        "blurb": partner.blurb or "",
-        "logo_path": partner.logo_path or "",
-        "is_active": partner.is_active,
-        "sort_order": partner.sort_order,
-    }
-
-
-def _tma_partner_payload(partner: Partner, partner_type: PartnerType | None) -> dict:
+def _tma_partner_payload(
+    partner: Partner,
+    partner_type: PartnerType | None,
+    storage: AssetStorage | None,
+) -> dict:
     action = partner.name
     type_label = partner.type
     if partner_type is not None:
@@ -133,13 +127,28 @@ def _tma_partner_payload(partner: Partner, partner_type: PartnerType | None) -> 
         "blurb": partner.blurb or "",
         "type_label": type_label,
         "action": action,
-        "logo_url": f"/api/tma/partners/{partner.id}/logo" if partner.logo_path else "",
+        "logo_url": _tma_logo_url(partner, storage),
     }
+
+
+def _tma_logo_url(partner: Partner, storage: AssetStorage | None) -> str:
+    logo = partner.logo_path or ""
+    if not logo:
+        return ""
+    if is_bundled_logo(logo):
+        return f"/api/tma/partners/{partner.id}/logo"
+    if storage is None:
+        return ""
+    return storage.public_url(logo)
+
+
+_FROM_ENV = object()
 
 
 def create_app(
     *,
     store: SessionStore | None = None,
+    storage: AssetStorage | None | object = _FROM_ENV,
     choose_partner_type: Callable[[str, list[str]], Awaitable[str | None]] | None = None,
     write_answer: Callable[[str], Awaitable[str]] | None = None,
 ) -> FastAPI:
@@ -159,6 +168,9 @@ def create_app(
             await app.state.store.close()
 
     app = FastAPI(title="Mike Bali Admin API", lifespan=lifespan)
+    app.state.storage = (
+        AssetStorage.from_env(os.environ) if storage is _FROM_ENV else storage
+    )
     if store is not None:
         app.state.store = store
 
@@ -200,7 +212,10 @@ def create_app(
         request: Request,
         _admin: AdminUser = Depends(require_admin),
     ) -> list[dict]:
-        return [_partner_payload(item) for item in await _store(request).list_partners()]
+        storage = request.app.state.storage
+        return [
+            partner_payload(item, storage) for item in await _store(request).list_partners()
+        ]
 
     @app.post("/api/partners", status_code=201)
     async def create_partner(
@@ -213,11 +228,10 @@ def create_app(
             type=body.type,
             referral_url=body.referral_url,
             blurb=body.blurb,
-            logo_path=body.logo_path,
             is_active=body.is_active,
             sort_order=body.sort_order,
         )
-        return _partner_payload(created)
+        return partner_payload(created, request.app.state.storage)
 
     @app.patch("/api/partners/{partner_id}")
     async def update_partner(
@@ -233,13 +247,12 @@ def create_app(
                 type=body.type,
                 referral_url=body.referral_url,
                 blurb=body.blurb,
-                logo_path=body.logo_path,
                 is_active=body.is_active,
                 sort_order=body.sort_order,
             )
         except KeyError:
             raise HTTPException(status_code=404, detail="Партнёр не найден") from None
-        return _partner_payload(updated)
+        return partner_payload(updated, request.app.state.storage)
 
     @app.get("/api/partners/{partner_id}/logo")
     async def partner_logo(
@@ -453,7 +466,10 @@ def create_app(
     ) -> list[dict]:
         saved = await _store(request).list_saved_partners("telegram", str(tourist["id"]))
         types = {item.slug: item for item in await _store(request).list_partner_types()}
-        return [_tma_partner_payload(partner, types.get(partner.type)) for partner in saved]
+        return [
+            _tma_partner_payload(partner, types.get(partner.type), request.app.state.storage)
+            for partner in saved
+        ]
 
     @app.put("/api/tma/favorites/{partner_id}")
     async def save_tma_favorite(
@@ -524,7 +540,7 @@ def create_app(
         partners = await _store(request).list_partners()
         types = {item.slug: item for item in await _store(request).list_partner_types()}
         return [
-            _tma_partner_payload(partner, types.get(partner.type))
+            _tma_partner_payload(partner, types.get(partner.type), request.app.state.storage)
             for partner in partners
             if partner.is_active
         ]
@@ -546,4 +562,5 @@ def create_app(
         return FileResponse(path)
 
     app.include_router(partner_dashboard_router)
+    app.include_router(partner_logos_router)
     return app
