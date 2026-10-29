@@ -112,7 +112,7 @@ components:
 
 Mike is still the guide at the gate. The interface is the gloss already shipping in the Telegram app: a tinted stage, frosted panes, a bright rim, and ink for the one filled action. Light theme is morning on a pale leaf-green stage. Dark theme is a warm night, the same materials with the values flipped.
 
-The Telegram app puts a day photograph under the light theme and a dusk photograph under the dark theme, then a veil, then the glass. The admin and the partner cabinet do not. They are desk tools. Their stage is the solid color alone, so a table stays readable. The glass, the ink, the rim, and the sun/moon switch are the same.
+The Telegram app, the admin, and the partner cabinet all put a day photograph under the light theme and a dusk photograph under the dark theme, then a veil, then the glass. Tables, forms, and dialogs stay on the opaque glass so a row of numbers stays readable.
 
 The CRM cabinet has not moved. It still uses the older flat stone system. Do not treat it as part of this gloss.
 
@@ -122,7 +122,7 @@ This system rejects the generic slate SaaS dashboard, the luxury Bali resort bro
 
 - One voice for the Telegram chat, the admin, and the partner cabinet
 - Two themes, chosen with a sun/moon switch and remembered on that app
-- Solid stage on the cabinets; the photograph stays on the Telegram app
+- The same day and dusk photographs behind the Telegram app and both cabinets, under a veil
 - Frosted panes with a 1px edge, an inset sheen, and a soft offset shadow
 - Ink is the filled action, the focus ring, and the active nav item
 - Chart green is a series color, never a button
@@ -135,7 +135,7 @@ Tokens live as `oklch` in the stylesheets. The hex values below are the light an
 
 ### Stage
 
-- **Stage, light** (#d5e6e1): the page. Pale leaf green. Not linen, not cream, not a photograph.
+- **Stage, light** (#d5e6e1): the color under the day photograph, and the fallback before it loads. Pale leaf green. Not linen, not cream.
 - **Stage, dark** (#14110e): the page at night. Warm black, not blue slate.
 
 ### Ink
@@ -150,7 +150,7 @@ Tokens live as `oklch` in the stylesheets. The hex values below are the light an
 
 - **Glass**: the rail and the top bar. Translucent, so the stage tints the chrome.
 - **Glass strong**: panels, stat cards, partner cards, the login card.
-- **Glass solid**: inputs, tables, dialogs, secondary buttons. Opaque enough that typed text and rows do not pick up the stage.
+- **Glass solid**: inputs, tables, dialogs, secondary buttons. Opaque enough that typed text and rows do not pick up the photograph.
 - **Sheen**: a 1px inset highlight on the top edge of glass and of the filled button.
 - **Shadow**: an offset blur under glass. Light theme is a soft green-gray at 16%. Dark theme is a deeper warm shadow.
 - **Line, light** (#7c8a82): the 1px edge. About 3.3:1 on light glass.
@@ -164,7 +164,7 @@ Tokens live as `oklch` in the stylesheets. The hex values below are the light an
 
 ### Named Rules
 
-**The Solid Stage Rule.** Cabinets use the stage color and nothing behind it. The day and dusk photographs belong to the Telegram app.
+**The Photograph Rule.** Light theme shows the day photograph. Dark theme shows the dusk photograph. A veil sits on the photograph. Tables, inputs, and dialogs use the opaque glass. The rail, the top bar, and the stat panels stay translucent so the picture remains visible.
 
 **The Ink Action Rule.** The filled button, the focus ring, and the active nav item are ink. Chart green does not appear on a control.
 
@@ -251,7 +251,7 @@ Two split gate prongs, then MIKE / BALI GUIDE, in ink. Once in the rail or the p
 
 ### Don't:
 
-- **Don't** put the day or dusk photograph behind the admin or the partner cabinet.
+- **Don't** leave the cabinet on a flat color when the day or dusk photograph is available.
 - **Don't** build the generic slate SaaS dashboard.
 - **Don't** use linen, cream, or sand as a background. Linen stays in the portrait.
 - **Don't** use neon chart series: no cyan, magenta, or purple.

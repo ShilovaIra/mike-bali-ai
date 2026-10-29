@@ -5,12 +5,25 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider } from './theme.tsx'
 
+function Stage() {
+  return (
+    <>
+      <div className="scene scene-day" aria-hidden="true" />
+      <div className="scene scene-dusk" aria-hidden="true" />
+      <div className="veil" aria-hidden="true" />
+    </>
+  )
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </ThemeProvider>
+    <Stage />
+    <div className="cabinet">
+      <ThemeProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
+    </div>
   </StrictMode>,
 )
