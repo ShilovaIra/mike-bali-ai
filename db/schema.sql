@@ -202,7 +202,7 @@ VALUES
     'excursions',
     'https://mybalitrips.com/?utm_pid=1439',
     'С 2013 года — живые гиды по Бали и Индонезии, не бот. Более 60 000 гостей и проверенные туры.',
-    'media/partners/excursion_logo.jpeg',
+    'media/partners/excursion_logo.png',
     true,
     1
 ),

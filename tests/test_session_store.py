@@ -147,7 +147,7 @@ async def test_schema_seeds_excursions_partner(store):
         "С 2013 года — живые гиды по Бали и Индонезии, не бот. "
         "Более 60 000 гостей и проверенные туры."
     )
-    assert partner.logo_path == "media/partners/excursion_logo.jpeg"
+    assert partner.logo_path == "media/partners/excursion_logo.png"
 
 
 @requires_db
