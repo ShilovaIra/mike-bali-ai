@@ -818,6 +818,11 @@ p {
   color: var(--ink);
 }
 
+.composer input:focus,
+.composer input:focus-visible {
+  outline: none;
+}
+
 .composer input::placeholder {
   color: var(--muted);
   opacity: 1;
