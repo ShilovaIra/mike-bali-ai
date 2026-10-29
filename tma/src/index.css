@@ -475,6 +475,34 @@ p {
   gap: 10px;
 }
 
+.tiles-scroll {
+  --tile-gap: 10px;
+  --tile-peek: 14px;
+  display: flex;
+  gap: var(--tile-gap);
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+}
+
+.tiles-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tiles-scroll > .tile {
+  flex: 0 0 calc((100% - (var(--tile-gap) * 2) - var(--tile-peek)) / 2);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.tiles-scroll > .tile:last-child {
+  scroll-snap-align: end;
+}
+
 .tile {
   position: relative;
   border-radius: 22px;

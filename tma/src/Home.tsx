@@ -19,7 +19,6 @@ export function Home({
   onOpen: (id: string) => void
   onAsk: () => void
 }) {
-  const homePartners = partners.slice(0, 2)
   if (view === 'list') {
     return (
       <div className="stack">
@@ -62,11 +61,11 @@ export function Home({
         </button>
       </div>
 
-      {homePartners.length === 0 ? (
+      {partners.length === 0 ? (
         <p className="empty-copy panel">Пока нет рекомендаций. Спросите Майка.</p>
       ) : (
-        <div className="tiles">
-          {homePartners.map((partner) => (
+        <div className={partners.length > 2 ? 'tiles tiles-scroll' : 'tiles'}>
+          {partners.map((partner) => (
             <article key={partner.id} className="tile">
               <button type="button" className="tile-open" onClick={() => onOpen(partner.id)}>
                 <PartnerLogo src={partner.logo} />
