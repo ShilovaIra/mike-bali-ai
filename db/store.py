@@ -248,6 +248,24 @@ class SessionStore:
                 for row in reversed(rows)
             ]
 
+    async def list_thread_messages(
+        self, channel: str, external_id: str
+    ) -> list[dict[str, str]]:
+        async with self._pool.acquire() as conn:
+            ctx = await self._fetch_active(conn, channel, external_id)
+            if ctx is None:
+                return []
+            rows = await conn.fetch(
+                """
+                SELECT role, content
+                FROM messages
+                WHERE conversation_id = $1
+                ORDER BY created_at, id
+                """,
+                ctx.conversation_id,
+            )
+        return [{"role": row["role"], "content": row["content"]} for row in rows]
+
     async def list_partner_types(self) -> list[PartnerType]:
         async with self._pool.acquire() as conn:
             rows = await conn.fetch(
@@ -403,7 +421,6 @@ class SessionStore:
         type: str,
         referral_url: str,
         blurb: str = "",
-        logo_path: str = "",
         is_active: bool = True,
         sort_order: int = 0,
     ) -> Partner:
@@ -415,9 +432,8 @@ class SessionStore:
                     type = $3,
                     referral_url = $4,
                     blurb = $5,
-                    logo_path = $6,
-                    is_active = $7,
-                    sort_order = $8
+                    is_active = $6,
+                    sort_order = $7
                 WHERE id = $1
                 RETURNING *
                 """,
@@ -426,13 +442,41 @@ class SessionStore:
                 type,
                 referral_url,
                 blurb or None,
-                logo_path or None,
                 is_active,
                 sort_order,
             )
         if row is None:
             raise KeyError(partner_id)
         return _partner_from_row(row)
+
+    async def set_partner_logo(
+        self, partner_id: UUID, logo_path: str | None
+    ) -> tuple[str | None, Partner]:
+        """Replace a partner's logo; returns (previous logo_path, updated partner)."""
+        async with self._pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                WITH old AS (
+                    SELECT id, logo_path FROM partners WHERE id = $1 FOR UPDATE
+                ),
+                updated AS (
+                    UPDATE partners
+                    SET logo_path = $2
+                    FROM old
+                    WHERE partners.id = old.id
+                    RETURNING partners.id, partners.name, partners.type,
+                        partners.referral_url, partners.blurb, partners.logo_path,
+                        partners.is_active, partners.sort_order,
+                        old.logo_path AS previous_logo_path
+                )
+                SELECT * FROM updated
+                """,
+                partner_id,
+                logo_path,
+            )
+        if row is None:
+            raise KeyError(partner_id)
+        return row["previous_logo_path"], _partner_from_row(row)
 
     async def add_knowledge_base_partner(self, partner_id: UUID) -> KnowledgeBaseEntry:
         async with self._pool.acquire() as conn:
@@ -581,6 +625,60 @@ class SessionStore:
                 ctx.conversation_id,
             )
             return exists is not None
+
+    async def save_partner(
+        self, channel: str, external_id: str, partner_id: UUID
+    ) -> None:
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                user_id, _source = await self._ensure_user(conn, channel, external_id, "tma")
+                await conn.execute(
+                    """
+                    INSERT INTO saved_partners (user_id, partner_id)
+                    VALUES ($1, $2)
+                    ON CONFLICT DO NOTHING
+                    """,
+                    user_id,
+                    partner_id,
+                )
+
+    async def forget_partner(
+        self, channel: str, external_id: str, partner_id: UUID
+    ) -> None:
+        async with self._pool.acquire() as conn:
+            await conn.execute(
+                """
+                DELETE FROM saved_partners
+                WHERE partner_id = $3
+                  AND user_id = (
+                    SELECT user_id FROM identities
+                    WHERE channel = $1 AND external_id = $2
+                  )
+                """,
+                channel,
+                external_id,
+                partner_id,
+            )
+
+    async def list_saved_partners(self, channel: str, external_id: str) -> list[Partner]:
+        async with self._pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT partners.*
+                FROM saved_partners
+                JOIN identities
+                  ON identities.user_id = saved_partners.user_id
+                JOIN partners
+                  ON partners.id = saved_partners.partner_id
+                WHERE identities.channel = $1
+                  AND identities.external_id = $2
+                  AND partners.is_active
+                ORDER BY saved_partners.created_at, partners.name
+                """,
+                channel,
+                external_id,
+            )
+        return [_partner_from_row(row) for row in rows]
 
     async def record_inbound(
         self,
@@ -739,6 +837,14 @@ class SessionStore:
                     topic,
                 )
 
+    async def ensure_user(self, channel: str, external_id: str, *, source: str) -> UUID:
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                user_id, _source = await self._ensure_user(
+                    conn, channel, external_id, source
+                )
+                return user_id
+
     async def _ensure_user(
         self,
         conn: asyncpg.Connection,
@@ -774,16 +880,31 @@ class SessionStore:
             """,
             source,
         )
-        await conn.execute(
+        inserted = await conn.fetchval(
             """
             INSERT INTO identities (user_id, channel, external_id)
             VALUES ($1, $2, $3)
+            ON CONFLICT (channel, external_id) DO NOTHING
+            RETURNING user_id
             """,
             user_id,
             channel,
             external_id,
         )
-        return user_id, source
+        if inserted is not None:
+            return user_id, source
+        await conn.execute("DELETE FROM users WHERE id = $1", user_id)
+        row = await conn.fetchrow(
+            """
+            SELECT u.id, u.first_source
+            FROM identities i
+            JOIN users u ON u.id = i.user_id
+            WHERE i.channel = $1 AND i.external_id = $2
+            """,
+            channel,
+            external_id,
+        )
+        return row["id"], row["first_source"]
 
     async def _close_active_conversation(
         self, conn: asyncpg.Connection, user_id: UUID

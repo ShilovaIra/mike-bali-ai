@@ -182,7 +182,7 @@ VALUES
     'esim',
     'https://t.me/Mike_Bali_eSIM_bot',
     '',
-    'media/partners/esim-logo.jpeg',
+    'media/partners/esim-logo.png',
     true,
     1
 ),
@@ -192,7 +192,7 @@ VALUES
     'money_exchange',
     'https://ex24qr.com/wtakeox',
     'Лицензированный обмен валюты. Бали, Вьетнам, ОАЭ, Китай, Таиланд. Переводы по всему миру.',
-    'media/partners/ex24pro_logo.jpeg',
+    'media/partners/ex24pro_logo.png',
     true,
     1
 ),
@@ -202,7 +202,7 @@ VALUES
     'excursions',
     'https://mybalitrips.com/?utm_pid=1439',
     'С 2013 года — живые гиды по Бали и Индонезии, не бот. Более 60 000 гостей и проверенные туры.',
-    'media/partners/excursion_logo.jpeg',
+    'media/partners/excursion_logo.png',
     true,
     1
 ),
@@ -212,7 +212,7 @@ VALUES
     'visa_service',
     'https://t.me/ButlerSupportBot?start=start-ref_baliguide',
     'Откроем и продлим визу, поможем с визами в другие страны, компанией и KITAS. Апостиль, вилла, IMEI, карта и консьерж.',
-    'media/partners/visa_service_logo.jpeg',
+    'media/partners/visa_service_logo.png',
     true,
     1
 )
@@ -221,9 +221,9 @@ ON CONFLICT (id) DO UPDATE SET
     type = EXCLUDED.type,
     referral_url = EXCLUDED.referral_url,
     blurb = EXCLUDED.blurb,
-    logo_path = EXCLUDED.logo_path,
     is_active = EXCLUDED.is_active,
     sort_order = EXCLUDED.sort_order;
+-- logo_path stays as stored. A later boot must not put a Spaces key back to media/.
 
 CREATE TABLE IF NOT EXISTS leads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -332,4 +332,11 @@ CREATE TABLE IF NOT EXISTS knowledge_base (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     partner_id UUID NOT NULL UNIQUE REFERENCES partners (id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS saved_partners (
+    user_id UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    partner_id UUID NOT NULL REFERENCES partners (id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, partner_id)
 );

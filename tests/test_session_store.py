@@ -115,7 +115,7 @@ async def test_schema_seeds_esim_partner(store):
     partner = partners[0]
     assert partner.referral_url == "https://t.me/Mike_Bali_eSIM_bot"
     assert partner.blurb in (None, "")
-    assert partner.logo_path == "media/partners/esim-logo.jpeg"
+    assert partner.logo_path == "media/partners/esim-logo.png"
 
 
 @requires_db
@@ -131,7 +131,7 @@ async def test_schema_seeds_money_exchange_partner(store):
         "Лицензированный обмен валюты. Бали, Вьетнам, ОАЭ, Китай, Таиланд. "
         "Переводы по всему миру."
     )
-    assert partner.logo_path == "media/partners/ex24pro_logo.jpeg"
+    assert partner.logo_path == "media/partners/ex24pro_logo.png"
 
 
 @requires_db
@@ -147,7 +147,7 @@ async def test_schema_seeds_excursions_partner(store):
         "С 2013 года — живые гиды по Бали и Индонезии, не бот. "
         "Более 60 000 гостей и проверенные туры."
     )
-    assert partner.logo_path == "media/partners/excursion_logo.jpeg"
+    assert partner.logo_path == "media/partners/excursion_logo.png"
 
 
 @requires_db
@@ -165,7 +165,20 @@ async def test_schema_seeds_visa_service_partner(store):
         "Откроем и продлим визу, поможем с визами в другие страны, компанией и KITAS. "
         "Апостиль, вилла, IMEI, карта и консьерж."
     )
-    assert partner.logo_path == "media/partners/visa_service_logo.jpeg"
+    assert partner.logo_path == "media/partners/visa_service_logo.png"
+
+
+@requires_db
+async def test_schema_reapply_keeps_a_storage_logo(store):
+    await _reapply_schema(store)
+    partner = (await store.list_active_partners("visa_service"))[0]
+    key = f"partners/{partner.id}/logo-abc.png"
+
+    await store.set_partner_logo(partner.id, key)
+    await _reapply_schema(store)
+
+    again = (await store.list_active_partners("visa_service"))[0]
+    assert again.logo_path == key
 
 
 @requires_db

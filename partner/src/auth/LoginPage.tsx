@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { Wordmark } from '../brand/Wordmark'
+import { ThemeSwitch } from '../ThemeSwitch'
 import { authApi } from './authApi'
 
 export function LoginPage() {
@@ -27,41 +29,46 @@ export function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4">
-      <p className="mb-2 text-sm font-medium tracking-wide text-slate-500">Mike Bali AI</p>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Кабинет партнёра</h1>
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded border border-slate-300 bg-white px-3 py-2"
-            autoComplete="username"
-            required
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Пароль
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded border border-slate-300 bg-white px-3 py-2"
-            autoComplete="current-password"
-            required
-          />
-        </label>
-        {error ? <p role="alert">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-slate-900 px-4 py-2 text-white hover:bg-slate-800 disabled:opacity-60"
-        >
-          Войти
-        </button>
-      </form>
+    <main className="login-stage">
+      <div className="login">
+        <div className="login-tools">
+          <ThemeSwitch />
+        </div>
+        <Wordmark />
+        <h1>Кабинет партнёра</h1>
+        <form onSubmit={onSubmit} className="stack">
+          <label className="field">
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="control"
+              autoComplete="username"
+              required
+            />
+          </label>
+          <label className="field">
+            Пароль
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="control"
+              autoComplete="current-password"
+              required
+            />
+          </label>
+          {error ? (
+            <p className="alert" role="alert">
+              {error}
+            </p>
+          ) : null}
+          <button type="submit" disabled={pending} className="btn-primary">
+            Войти
+          </button>
+        </form>
+      </div>
     </main>
   )
 }

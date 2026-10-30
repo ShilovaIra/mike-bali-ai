@@ -53,7 +53,7 @@ export function ShareDonut({ slices }: ShareDonutProps) {
               innerRadius="58%"
               outerRadius="88%"
               paddingAngle={1}
-              stroke="#fafbfc"
+              stroke="var(--glass-solid)"
               strokeWidth={1}
             >
               {colored.map((slice) => (

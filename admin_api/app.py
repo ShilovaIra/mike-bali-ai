@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from uuid import UUID
@@ -10,14 +12,30 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr, Field
 
 from admin_api.deps import require_admin
+from admin_api.partner_logos import router as partner_logos_router
+from admin_api.payloads import partner_payload
 from admin_api.tokens import create_access_token
+from admin_api.webapp import telegram_user
 from db.passwords import verify_password
 from db.store import AdminUser, SessionStore
 from knowledge_base import KnowledgeBaseEntry
 from db.url import resolve_database_url
+from maps_links import sanitize_map_links
+from partner_dashboard.offers import wrap_partners_for_channel_user, wrap_partners_for_user
 from partner_dashboard.router import router as partner_dashboard_router
-from partners import PACKAGE_ROOT, Partner, PartnerType, resolve_logo_path
+from partners import (
+    PACKAGE_ROOT,
+    Partner,
+    PartnerType,
+    build_partner_button_text,
+    is_bundled_logo,
+    partner_type_chip,
+    resolve_logo_path,
+)
+from storage import AssetStorage
 from stats_report import collapse_user_sources, labeled_topic_rows
+from tourist_answers import answer_with_partner_list, choose_partner_type as default_choose_partner_type
+from tourist_answers import write_tourist_answer
 
 
 class LoginRequest(BaseModel):
@@ -69,13 +87,16 @@ class PartnerIn(BaseModel):
     type: str
     referral_url: str
     blurb: str = ""
-    logo_path: str = ""
     is_active: bool = True
     sort_order: int = 0
 
 
 class KnowledgeBaseIn(BaseModel):
     partner_id: UUID
+
+
+class TmaMessageIn(BaseModel):
+    text: str
 
 
 def _knowledge_base_payload(entry: KnowledgeBaseEntry) -> dict:
@@ -90,20 +111,47 @@ def _knowledge_base_payload(entry: KnowledgeBaseEntry) -> dict:
     }
 
 
-def _partner_payload(partner: Partner) -> dict:
+def _tma_partner_payload(
+    partner: Partner,
+    partner_type: PartnerType | None,
+    storage: AssetStorage | None,
+) -> dict:
+    action = partner.name
+    type_label = partner.type
+    if partner_type is not None:
+        action = build_partner_button_text(partner, partner_type)
+        type_label = partner_type_chip(partner_type.topic_label)
     return {
         "id": str(partner.id),
         "name": partner.name,
-        "type": partner.type,
-        "referral_url": partner.referral_url,
         "blurb": partner.blurb or "",
-        "logo_path": partner.logo_path or "",
-        "is_active": partner.is_active,
-        "sort_order": partner.sort_order,
+        "type_label": type_label,
+        "action": action,
+        "logo_url": _tma_logo_url(partner, storage),
     }
 
 
-def create_app(*, store: SessionStore | None = None) -> FastAPI:
+def _tma_logo_url(partner: Partner, storage: AssetStorage | None) -> str:
+    logo = partner.logo_path or ""
+    if not logo:
+        return ""
+    if is_bundled_logo(logo):
+        return f"/api/tma/partners/{partner.id}/logo"
+    if storage is None:
+        return ""
+    return storage.public_url(logo)
+
+
+_FROM_ENV = object()
+
+
+def create_app(
+    *,
+    store: SessionStore | None = None,
+    storage: AssetStorage | None | object = _FROM_ENV,
+    choose_partner_type: Callable[[str, list[str]], Awaitable[str | None]] | None = None,
+    write_answer: Callable[[str], Awaitable[str]] | None = None,
+) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         owned = False
@@ -120,6 +168,9 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
             await app.state.store.close()
 
     app = FastAPI(title="Mike Bali Admin API", lifespan=lifespan)
+    app.state.storage = (
+        AssetStorage.from_env(os.environ) if storage is _FROM_ENV else storage
+    )
     if store is not None:
         app.state.store = store
 
@@ -161,7 +212,10 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
         request: Request,
         _admin: AdminUser = Depends(require_admin),
     ) -> list[dict]:
-        return [_partner_payload(item) for item in await _store(request).list_partners()]
+        storage = request.app.state.storage
+        return [
+            partner_payload(item, storage) for item in await _store(request).list_partners()
+        ]
 
     @app.post("/api/partners", status_code=201)
     async def create_partner(
@@ -174,11 +228,10 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
             type=body.type,
             referral_url=body.referral_url,
             blurb=body.blurb,
-            logo_path=body.logo_path,
             is_active=body.is_active,
             sort_order=body.sort_order,
         )
-        return _partner_payload(created)
+        return partner_payload(created, request.app.state.storage)
 
     @app.patch("/api/partners/{partner_id}")
     async def update_partner(
@@ -194,13 +247,12 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
                 type=body.type,
                 referral_url=body.referral_url,
                 blurb=body.blurb,
-                logo_path=body.logo_path,
                 is_active=body.is_active,
                 sort_order=body.sort_order,
             )
         except KeyError:
             raise HTTPException(status_code=404, detail="Партнёр не найден") from None
-        return _partner_payload(updated)
+        return partner_payload(updated, request.app.state.storage)
 
     @app.get("/api/partners/{partner_id}/logo")
     async def partner_logo(
@@ -336,5 +388,179 @@ def create_app(*, store: SessionStore | None = None) -> FastAPI:
         if not deleted:
             raise HTTPException(status_code=404, detail="Пользователь не найден")
 
+    async def require_tourist(request: Request) -> dict:
+        header = request.headers.get("authorization", "")
+        token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+        user = None
+        if header.startswith("tma "):
+            user = telegram_user(header.removeprefix("tma ").strip(), token)
+        if user is None:
+            raise HTTPException(status_code=401, detail="Нужна подпись Telegram")
+        return user
+
+    @app.get("/api/tma/me")
+    async def tma_me(tourist: dict = Depends(require_tourist)) -> dict:
+        return {
+            "first_name": str(tourist.get("first_name") or ""),
+            "last_name": str(tourist.get("last_name") or ""),
+            "photo_url": str(tourist.get("photo_url") or ""),
+        }
+
+    @app.get("/api/tma/messages")
+    async def list_tma_messages(
+        request: Request,
+        tourist: dict = Depends(require_tourist),
+    ) -> list[dict]:
+        return await _store(request).list_thread_messages("telegram", str(tourist["id"]))
+
+    @app.post("/api/tma/messages")
+    async def post_tma_message(
+        request: Request,
+        body: TmaMessageIn,
+        tourist: dict = Depends(require_tourist),
+    ) -> dict:
+        text = body.text.strip()
+        session = _store(request)
+        telegram_id = str(tourist["id"])
+        types = await session.list_partner_types()
+        chooser = choose_partner_type or default_choose_partner_type
+        chosen = await chooser(text, [item.slug for item in types])
+        partner_type = next((item for item in types if item.slug == chosen), None)
+        active = (
+            await session.list_active_partners(partner_type.slug)
+            if partner_type is not None
+            else []
+        )
+        if partner_type is not None and active:
+            reply = await answer_with_partner_list(session, telegram_id, text, partner_type)
+            return {"reply": reply}
+        await session.append_message("telegram", telegram_id, role="user", content=text)
+        if write_answer is None:
+            reply = await write_tourist_answer(session, telegram_id)
+        else:
+            reply = await write_answer(text)
+        lead_ready = "ЗАЯВКА_ГОТОВА" in reply
+        reply = sanitize_map_links(reply.replace("ЗАЯВКА_ГОТОВА", "").strip())
+        await session.append_message(
+            "telegram", telegram_id, role="assistant", content=reply
+        )
+        if lead_ready:
+            history = await session.get_ai_context("telegram", telegram_id, limit=16)
+            username = tourist.get("username")
+            await session.create_lead(
+                "telegram",
+                telegram_id,
+                snapshot={
+                    "telegram_id": telegram_id,
+                    "telegram_username": f"@{username}" if username else None,
+                    "telegram_first_name": tourist.get("first_name"),
+                    "dialogue": history,
+                },
+            )
+        return {"reply": reply}
+
+    @app.get("/api/tma/favorites")
+    async def list_tma_favorites(
+        request: Request,
+        tourist: dict = Depends(require_tourist),
+    ) -> list[dict]:
+        saved = await _store(request).list_saved_partners("telegram", str(tourist["id"]))
+        types = {item.slug: item for item in await _store(request).list_partner_types()}
+        return [
+            _tma_partner_payload(partner, types.get(partner.type), request.app.state.storage)
+            for partner in saved
+        ]
+
+    @app.put("/api/tma/favorites/{partner_id}")
+    async def save_tma_favorite(
+        request: Request,
+        partner_id: UUID,
+        tourist: dict = Depends(require_tourist),
+    ) -> dict:
+        await _store(request).save_partner("telegram", str(tourist["id"]), partner_id)
+        return {"id": str(partner_id)}
+
+    @app.delete("/api/tma/favorites/{partner_id}", status_code=204)
+    async def forget_tma_favorite(
+        request: Request,
+        partner_id: UUID,
+        tourist: dict = Depends(require_tourist),
+    ) -> None:
+        await _store(request).forget_partner("telegram", str(tourist["id"]), partner_id)
+
+    @app.post("/api/tma/partners/{partner_id}/open")
+    async def open_tma_partner(request: Request, partner_id: UUID) -> dict:
+        header = request.headers.get("authorization", "")
+        visitor_id = ""
+        tourist: dict | None = None
+        if header.startswith("tma "):
+            tourist = await require_tourist(request)
+        else:
+            visitor_id = request.headers.get("x-visitor-id", "").strip()
+            if not visitor_id:
+                raise HTTPException(status_code=401, detail="Нужна подпись Telegram")
+        session = _store(request)
+        partner = next(
+            (
+                item
+                for item in await session.list_partners()
+                if item.id == partner_id and item.is_active
+            ),
+            None,
+        )
+        if partner is None:
+            raise HTTPException(status_code=404, detail="Партнёр не найден")
+        public_base = os.environ.get("PARTNER_OFFER_BASE_URL", "")
+        if tourist is not None:
+            wrapped = await wrap_partners_for_channel_user(
+                session,
+                [partner],
+                "telegram",
+                str(tourist["id"]),
+                public_base=public_base,
+            )
+        else:
+            user_id = await session.ensure_user("tma", visitor_id, source="tma")
+            wrapped = await wrap_partners_for_user(
+                session.pool,
+                [partner],
+                user_id,
+                public_base=public_base,
+            )
+        url = wrapped[0].referral_url
+        base = public_base.strip().rstrip("/")
+        if not (base.startswith("http://") or base.startswith("https://")) or not url.startswith(
+            f"{base}/r/"
+        ):
+            raise HTTPException(status_code=503, detail="Ссылка недоступна")
+        return {"url": url}
+
+    @app.get("/api/tma/partners")
+    async def list_tma_partners(request: Request) -> list[dict]:
+        partners = await _store(request).list_partners()
+        types = {item.slug: item for item in await _store(request).list_partner_types()}
+        return [
+            _tma_partner_payload(partner, types.get(partner.type), request.app.state.storage)
+            for partner in partners
+            if partner.is_active
+        ]
+
+    @app.get("/api/tma/partners/{partner_id}/logo")
+    async def tma_partner_logo(request: Request, partner_id: UUID) -> FileResponse:
+        partner = next(
+            (
+                item
+                for item in await _store(request).list_partners()
+                if item.id == partner_id and item.is_active
+            ),
+            None,
+        )
+        path = resolve_logo_path(partner.logo_path) if partner else None
+        media_dir = (PACKAGE_ROOT / "media" / "partners").resolve()
+        if path is None or not path.resolve().is_relative_to(media_dir):
+            raise HTTPException(status_code=404, detail="Логотип не найден")
+        return FileResponse(path)
+
     app.include_router(partner_dashboard_router)
+    app.include_router(partner_logos_router)
     return app
