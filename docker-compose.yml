@@ -86,10 +86,7 @@ services:
     ports:
       - "${PARTNER_WEB_PORT:-8081}:80"
 
-  # Started only with: docker compose --profile tma up
-  # Production deploy does not enable this profile.
   tma-web:
-    profiles: ["tma"]
     build:
       context: ./tma
       dockerfile: Dockerfile
@@ -102,5 +99,24 @@ services:
     ports:
       - "${TMA_WEB_PORT:-8082}:80"
 
+  # Public HTTPS for the Mini App. Starts only when COMPOSE_PROFILES includes tls.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles: ["tls"]
+    depends_on:
+      - tma-web
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      TMA_PUBLIC_HOST: ${TMA_PUBLIC_HOST:-app.mikebaliai.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

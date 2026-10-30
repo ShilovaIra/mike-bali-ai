@@ -4,7 +4,7 @@ Production does not deploy on push. Merge `staging` into `master` through a pull
 
 The workflow runs the test suite again, builds the images on the GitHub runner, copies them to the production Droplet, and starts `/opt/mike-bali-ai`. A second click waits until the first run finishes. The run refuses any ref other than `refs/heads/master`.
 
-If the new bot does not log `Mike Bali AI запущен`, or `admin-api`, `admin-web`, or `partner-web` is not up, the Droplet points the image tags back at the previous release and starts that release again. The GitHub job stays red. Image rollback does not restore the database.
+If the new bot does not log `Mike Bali AI запущен`, or `admin-api`, `admin-web`, `partner-web`, or `tma-web` is not up, the Droplet points the image tags back at the previous release and starts that release again. The GitHub job stays red. Image rollback does not restore the database.
 
 Keep `db/schema.sql` additive. A `DROP`, a `NOT NULL` column with no default, or a rewrite of existing rows can make the previous image crash after the new one has already applied the schema. Deploy that kind of change by hand on the Droplet and do not rely on the automatic retag.
 

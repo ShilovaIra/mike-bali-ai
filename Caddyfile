@@ -1,0 +1,3 @@
+{$TMA_PUBLIC_HOST:app.mikebaliai.com} {
+	reverse_proxy tma-web:80
+}
