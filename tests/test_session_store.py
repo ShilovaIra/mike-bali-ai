@@ -170,6 +170,7 @@ async def test_schema_seeds_visa_service_partner(store):
 
 @requires_db
 async def test_schema_reapply_keeps_a_storage_logo(store):
+    await _reapply_schema(store)
     partner = (await store.list_active_partners("visa_service"))[0]
     key = f"partners/{partner.id}/logo-abc.png"
 
