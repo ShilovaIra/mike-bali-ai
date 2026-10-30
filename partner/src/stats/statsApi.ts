@@ -27,6 +27,7 @@ export type PartnerStats = {
   all_time: PeriodStats
   last_30_days: PeriodStats
   category_users: CategoryUsers
+  favorites: number
 }
 
 export const partnerApi = {

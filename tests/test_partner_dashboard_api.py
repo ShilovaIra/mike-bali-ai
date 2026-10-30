@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from httpx import ASGITransport, AsyncClient
 
 from tests.conftest import requires_db
+from tests.test_tma_api import BOT_TOKEN, sign_init_data
 
 MONEY_TYPE = {
     "slug": "money_exchange",
@@ -341,3 +342,54 @@ async def test_updated_topic_label_shows_on_partner_stats(store, monkeypatch):
 
     assert stats.status_code == 200
     assert stats.json()["category_users"]["phrase"] == "обмен валюты"
+
+
+@requires_db
+async def test_partner_stats_count_users_who_currently_have_the_partner_in_favorites(
+    store, monkeypatch
+):
+    monkeypatch.setenv("ADMIN_JWT_SECRET", "test-admin-jwt-secret-at-least-32-chars")
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", BOT_TOKEN)
+    async with operator_client(store) as (client, partner):
+        other = await store.create_partner(
+            name="Other Shop",
+            type="money_exchange",
+            referral_url="https://example.com/other",
+        )
+        token = await create_shop_user(client, partner.id)
+
+        async def save(user_id: int, partner_id) -> int:
+            saved = await client.put(
+                f"/api/tma/favorites/{partner_id}",
+                headers={
+                    "Authorization": "tma "
+                    + sign_init_data({"id": user_id, "first_name": "Tourist"})
+                },
+            )
+            return saved.status_code
+
+        assert await save(1, partner.id) == 200
+        assert await save(1, partner.id) == 200
+        assert await save(2, partner.id) == 200
+        assert await save(3, other.id) == 200
+
+        stats = await client.get(
+            f"/api/partner/stats?partner_id={partner.id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert stats.status_code == 200
+        assert stats.json()["favorites"] == 2
+
+        removed = await client.delete(
+            f"/api/tma/favorites/{partner.id}",
+            headers={
+                "Authorization": "tma " + sign_init_data({"id": 2, "first_name": "Tourist"})
+            },
+        )
+        assert removed.status_code == 204
+
+        after = await client.get(
+            f"/api/partner/stats?partner_id={partner.id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert after.json()["favorites"] == 1

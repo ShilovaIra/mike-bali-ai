@@ -113,6 +113,12 @@ export function StatsPage() {
         ) : (
           <div className="stats-layout">
             <div className="stat-groups">
+              <section aria-label="В избранном сейчас">
+                <article className="stat-card">
+                  <p>В избранном сейчас</p>
+                  <p className="stat-value">{stats.favorites}</p>
+                </article>
+              </section>
               <section aria-label="Пользователи категории" className="stat-grid">
                 <article className="stat-card">
                   <p>Пользователей, выбравших {stats.category_users.phrase} (всё время)</p>
