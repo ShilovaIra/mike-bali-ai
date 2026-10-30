@@ -65,6 +65,7 @@ if [[ "${SKIP_IMAGE_BUILD:-}" != "1" ]]; then
   docker compose build bot
   docker compose build admin-web
   docker compose build partner-web
+  docker compose build tma-web
 fi
 
 service_running() {
@@ -91,6 +92,7 @@ release_ready() {
   service_running admin-api || return 1
   service_running admin-web || return 1
   service_running partner-web || return 1
+  service_running tma-web || return 1
   admin_api_healthy || return 1
   bot_logged_ready
 }
@@ -102,7 +104,7 @@ if ! docker compose up -d --remove-orphans --force-recreate; then
   exit 2
 fi
 
-echo "→ Waiting for bot, admin API, and both panels"
+echo "→ Waiting for bot, admin API, both panels, and the Mini App"
 ready=0
 for _ in $(seq 1 36); do
   if release_ready; then
@@ -117,6 +119,23 @@ if [[ "$ready" != 1 ]]; then
   docker compose ps || true
   docker compose logs --tail=80 bot || true
   docker compose logs --tail=40 admin-api || true
+  docker compose logs --tail=80 tma-web || true
+  exit 2
+fi
+
+tma_port="$(awk -F= '/^TMA_WEB_PORT=/{print $2}' .env | tail -1)"
+tma_port="${tma_port:-8082}"
+tma_code=""
+for _ in $(seq 1 15); do
+  tma_code="$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:${tma_port}/" || true)"
+  if [[ "$tma_code" == "200" ]]; then
+    break
+  fi
+  sleep 2
+done
+if [[ "$tma_code" != "200" ]]; then
+  echo "Expected Mini App / → 200, got ${tma_code:-none}"
+  docker compose logs --tail=80 tma-web || true
   exit 2
 fi
 

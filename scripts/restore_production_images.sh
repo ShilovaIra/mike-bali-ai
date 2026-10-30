@@ -30,6 +30,13 @@ for name in mike-bali-app mike-bali-admin-web mike-bali-partner-web; do
   fi
 done
 
+if docker image inspect "mike-bali-tma-web:previous" >/dev/null 2>&1; then
+  docker tag "mike-bali-tma-web:previous" "mike-bali-tma-web:local"
+  echo "Restored mike-bali-tma-web:local from mike-bali-tma-web:previous"
+else
+  echo "No mike-bali-tma-web:previous image to restore. Continuing."
+fi
+
 if [[ "$missing" -ne 0 ]]; then
   echo "Could not restore a full previous release."
   exit 1
